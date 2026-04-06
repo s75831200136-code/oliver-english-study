@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oliver's Speaking Practice</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;color:#333;display:flex;flex-direction:column}
+
+  .top-bar{background:rgba(255,255,255,.12);backdrop-filter:blur(12px);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;color:#fff}
+  .top-bar h1{font-size:1.3em}
+  .top-bar .stars{font-weight:800;font-size:1.1em}
+
+  .main{flex:1;max-width:700px;width:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column}
+
+  /* Mode Select */
+  .mode-select{padding:30px 0;text-align:center}
+  .mode-select h2{color:#fff;font-size:1.8em;margin-bottom:8px}
+  .mode-select p{color:rgba(255,255,255,.65);margin-bottom:30px}
+  .mode-cards{display:flex;flex-direction:column;gap:16px}
+  .mode-card{background:rgba(255,255,255,.95);border-radius:18px;padding:22px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:18px;text-align:left}
+  .mode-card:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.25)}
+  .mode-icon{font-size:2.5em;min-width:55px;text-align:center}
+  .mode-card h3{font-size:1.15em;margin-bottom:4px;color:#5B4FBE}
+  .mode-card p{color:#666;font-size:.9em;margin:0}
+
+  /* Chat Area */
+  .chat-container{flex:1;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+  .chat-header{background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border-radius:16px;padding:14px 20px;color:#fff;display:flex;align-items:center;gap:12px}
+  .avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6em}
+  .avatar.teacher{background:linear-gradient(135deg,#4ECDC4,#44bd9e)}
+  .chat-header .name{font-weight:800;font-size:1.05em}
+  .chat-header .status{font-size:.8em;opacity:.7}
+
+  .messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:8px 0;min-height:200px}
+  .msg{max-width:85%;padding:14px 18px;border-radius:18px;font-size:1em;line-height:1.5;animation:msgIn .3s ease}
+  @keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .msg.teacher{background:rgba(255,255,255,.95);color:#333;align-self:flex-start;border-bottom-left-radius:4px}
+  .msg.student{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .msg .label{font-size:.75em;opacity:.6;margin-bottom:4px;font-weight:700}
+  .msg .text{font-weight:600}
+  .msg .feedback{margin-top:8px;padding:8px 12px;border-radius:10px;font-size:.9em}
+  .msg .feedback.good{background:#E0FFF8;color:#00897B}
+  .msg .feedback.fix{background:#FFF8E1;color:#F57F17}
+  .msg .feedback.try{background:#FFF0F0;color:#C62828}
+
+  .typing-indicator{align-self:flex-start;background:rgba(255,255,255,.8);padding:12px 20px;border-radius:18px;border-bottom-left-radius:4px}
+  .typing-indicator span{display:inline-block;width:8px;height:8px;background:#999;border-radius:50%;margin:0 2px;animation:typeDot 1.4s infinite}
+  .typing-indicator span:nth-child(2){animation-delay:.2s}
+  .typing-indicator span:nth-child(3){animation-delay:.4s}
+  @keyframes typeDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+  /* Input Area */
+  .input-area{background:rgba(255,255,255,.1);backdrop-filter:blur(8px);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .prompt-text{color:rgba(255,255,255,.85);font-size:.95em;font-weight:600;text-align:center;min-height:20px}
+  .input-row{display:flex;gap:10px;align-items:center;justify-content:center}
+
+  .mic-btn{width:72px;height:72px;border-radius:50%;border:none;font-size:2em;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#FF6B6B,#ee5a24);box-shadow:0 5px 25px rgba(255,107,107,.4)}
+  .mic-btn:hover{transform:scale(1.08)}
+  .mic-btn.recording{background:linear-gradient(135deg,#4ECDC4,#44bd9e);box-shadow:0 5px 25px rgba(78,205,196,.5);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(78,205,196,.5)}50%{box-shadow:0 0 0 18px rgba(78,205,196,0)}}
+  .mic-btn:disabled{opacity:.4;cursor:not-allowed;animation:none}
+
+  .skip-btn{padding:10px 22px;border:2px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);border-radius:25px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.9em;cursor:pointer;transition:all .3s}
+  .skip-btn:hover{border-color:rgba(255,255,255,.6);color:#fff}
+
+  .hint-btn{padding:8px 18px;border:2px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);border-radius:25px;font-family:'Nunito',sans-serif;font-weight:600;font-size:.85em;cursor:pointer;transition:all .3s}
+  .hint-btn:hover{border-color:rgba(255,255,255,.5);color:#fff}
+
+  .listen-text{color:rgba(255,255,255,.5);font-size:.85em;text-align:center}
+
+  /* Word highlight in prompt */
+  .word-highlight{color:#FFEAA7;font-weight:800}
+
+  /* Score badge */
+  .score-float{position:fixed;top:70px;right:16px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);padding:10px 16px;border-radius:14px;color:#fff;font-weight:700;font-size:.9em;z-index:50}
+
+  .back-btn{position:fixed;bottom:16px;left:16px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:none;color:#fff;padding:10px 18px;border-radius:25px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;z-index:50;font-size:.85em}
+  .back-btn:hover{background:rgba(255,255,255,.25)}
+
+  /* Pronunciation score visual */
+  .pron-score{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.85em;font-weight:800}
+  .pron-score.great{background:#E0FFF8;color:#00897B}
+  .pron-score.good{background:#FFF8E1;color:#F57F17}
+  .pron-score.retry{background:#FFF0F0;color:#C62828}
+
+  @media(max-width:600px){
+    .msg{max-width:90%;font-size:.95em}
+    .mic-btn{width:64px;height:64px;font-size:1.7em}
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Speaking Practice</h1>
+  <div class="stars">&#11088; <span id="starCount">0</span></div>
+</div>
+
+<div class="main" id="app"></div>
+<button class="back-btn" id="backBtn" style="display:none" onclick="goHome()">&#8592; Menu</button>
+
+<script>
+// =========== GLOBALS ===========
+let stars=0, mode='', step=0, convData=[], recognition=null, isRecording=false, currentExpected='';
+const $=id=>document.getElementById(id);
+
+function speak(text,rate=.88,onEnd){
+  return new Promise(resolve=>{
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US';u.rate=rate;u.pitch=1.05;
+    u.onend=()=>{if(onEnd)onEnd();resolve()};
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  });
+}
+
+function addStar(n){stars+=n;$('starCount').textContent=stars}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function pick(a,n){return shuffle(a).slice(0,n)}
+function norm(s){return s.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim()}
+function similarity(a,b){
+  const wa=norm(a).split(' '), wb=norm(b).split(' ');
+  let match=0;
+  wb.forEach(w=>{if(wa.includes(w))match++});
+  return match/Math.max(wa.length,wb.length);
+}
+
+// =========== SPEECH RECOGNITION ===========
+function initRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('Speech recognition not supported. Please use Chrome!');return false}
+  recognition=new SR();
+  recognition.lang='en-US';
+  recognition.continuous=false;
+  recognition.interimResults=false;
+  recognition.maxAlternatives=3;
+  return true;
+}
+
+function startListening(onResult){
+  if(!recognition&&!initRecognition())return;
+  isRecording=true;
+  updateMicUI();
+
+  recognition.onresult=(e)=>{
+    const results=[];
+    for(let i=0;i<e.results[0].length;i++){
+      results.push({text:e.results[0][i].transcript, conf:e.results[0][i].confidence});
+    }
+    isRecording=false;
+    updateMicUI();
+    onResult(results);
+  };
+  recognition.onerror=(e)=>{
+    isRecording=false;
+    updateMicUI();
+    if(e.error==='no-speech'){
+      setPrompt("I didn't hear anything. Try again!");
+    } else {
+      setPrompt("Could not hear you. Please try again!");
+    }
+  };
+  recognition.onend=()=>{isRecording=false;updateMicUI()};
+  try{recognition.start()}catch(e){isRecording=false;updateMicUI()}
+}
+
+function stopListening(){
+  if(recognition&&isRecording){try{recognition.stop()}catch(e){}}
+  isRecording=false;
+  updateMicUI();
+}
+
+function updateMicUI(){
+  const btn=document.querySelector('.mic-btn');
+  if(!btn)return;
+  btn.classList.toggle('recording',isRecording);
+  btn.innerHTML=isRecording?'&#9209;':'&#127908;';
+}
+
+function setPrompt(text){
+  const el=document.querySelector('.prompt-text');
+  if(el)el.textContent=text;
+}
+
+// =========== CONVERSATION DATA ===========
+// Mode 1: Vocabulary Pronunciation
+function genVocabConv(){
+  const words=[
+    {w:'unusual',def:'not common',sent:'Takahashi invents unusual robots.'},
+    {w:'imagination',def:'pictures you make in your mind',sent:'He used his imagination.'},
+    {w:'waterproof',def:'not allowing water through',sent:'The robot is waterproof.'},
+    {w:'scramble',def:'to move quickly',sent:'The bird scrambled up the tree.'},
+    {w:'suddenly',def:'quickly and surprisingly',sent:'Suddenly, he shouted.'},
+    {w:'balance',def:'to stay without falling',sent:'The frame can balance on blocks.'},
+    {w:'woodpecker',def:'a bird that pecks trees',sent:'It is a woodpecker.'},
+    {w:'helmet',def:'protects your head',sent:'Workers put on a helmet.'},
+    {w:'driveway',def:'a short road to a house',sent:'Ana is in the driveway.'},
+    {w:'contest',def:'a game or race',sent:'He put his robots in contests.'},
+    {w:'company',def:'a business',sent:'He started his own company.'},
+    {w:'section',def:'a part of something bigger',sent:'A worker joins each steel section.'},
+    {w:'hopeless',def:'without hope',sent:'This is hopeless!'},
+    {w:'bounce',def:'to spring back',sent:'Ana was bouncing a ball.'},
+    {w:'invent',def:'to make something new',sent:'He invents unusual robots.'},
+  ];
+  const selected=pick(words,8);
+  const conv=[];
+  selected.forEach((item,i)=>{
+    conv.push({
+      type:'teacher-speak',
+      text:`Word ${i+1}: <b>${item.w}</b>. It means "${item.def}". Listen carefully and repeat after me!`,
+      speakText:`${item.w}. It means ${item.def}. Now you say it: ${item.w}`
+    });
+    conv.push({
+      type:'student-speak',
+      expected:item.w,
+      prompt:`Say the word: "${item.w}"`,
+      matchMode:'word'
+    });
+    conv.push({
+      type:'teacher-speak',
+      text:`Now say the whole sentence: "<b>${item.sent}</b>"`,
+      speakText:`Good. Now say the whole sentence: ${item.sent}`
+    });
+    conv.push({
+      type:'student-speak',
+      expected:item.sent,
+      prompt:`Say: "${item.sent}"`,
+      matchMode:'sentence'
+    });
+  });
+  return conv;
+}
+
+// Mode 2: Q&A Conversation about stories
+function genQAConv(){
+  const qas=[
+    {q:"Where was Tomotaka Takahashi born?", a:"japan", accept:["japan","he was born in japan","in japan","takahashi was born in japan"], hint:"Think about what country... It starts with J."},
+    {q:"What did Takahashi play with as a child?", a:"blocks", accept:["blocks","he played with blocks","with blocks"], hint:"They are small pieces you can stack."},
+    {q:"What kind of robots does Takahashi make?", a:"unusual robots", accept:["unusual robots","unusual","he makes unusual robots","he invents unusual robots"], hint:"They are not common. The word starts with 'un'."},
+    {q:"What was the tap-tap-tap sound in the story?", a:"a woodpecker", accept:["a woodpecker","woodpecker","it was a woodpecker","the woodpecker"], hint:"It's a bird that pecks on trees."},
+    {q:"What was Gramps doing in the story?", a:"sweeping the deck", accept:["sweeping the deck","sweeping","he was sweeping the deck","he was sweeping the deck with a broom"], hint:"He was cleaning an outdoor floor."},
+    {q:"What is the first step in building a ship?", a:"build a frame", accept:["build a frame","they build a frame","building a frame","frame","workers build a frame"], hint:"It's the skeleton of the ship. Starts with 'f'."},
+    {q:"What do workers wear to protect their heads?", a:"a helmet", accept:["a helmet","helmet","they wear a helmet","helmets"], hint:"Bicycle riders wear this too."},
+    {q:"What are two kinds of metal melted into?", a:"steel", accept:["steel","they are melted into steel","into steel"], hint:"It's a very strong metal. Starts with 'st'."},
+    {q:"What did the swimming robot have to help it swim?", a:"fins", accept:["fins","arms like fins","it had fins","it had arms like fins"], hint:"Fish have these on their body."},
+    {q:"What was Ana doing in the driveway?", a:"bouncing a ball", accept:["bouncing a ball","she was bouncing a ball","bouncing","playing with a ball"], hint:"She was throwing something up and down."},
+  ];
+  const selected=pick(qas,7);
+  const conv=[];
+  conv.push({type:'teacher-speak',text:"Hi Oliver! Let's talk about the stories we've read. I'll ask you some questions. Answer in English!",speakText:"Hi Oliver! Let's talk about the stories we've read. I'll ask you some questions. Answer in English!"});
+
+  selected.forEach((item,i)=>{
+    conv.push({
+      type:'teacher-speak',
+      text:`Question ${i+1}: ${item.q}`,
+      speakText:item.q
+    });
+    conv.push({
+      type:'student-speak',
+      expected:item.a,
+      acceptAll:item.accept,
+      prompt:item.q,
+      hint:item.hint,
+      matchMode:'qa'
+    });
+  });
+  conv.push({type:'teacher-speak',text:"Great conversation! You did a wonderful job talking about the stories!",speakText:"Great conversation! You did a wonderful job talking about the stories!"});
+  return conv;
+}
+
+// Mode 3: Grammar Speaking Drills
+function genGrammarConv(){
+  const drills=[
+    {prompt:"Make a sentence: I + read + a book (present continuous)", expected:"I am reading a book", accept:["i am reading a book","i'm reading a book"]},
+    {prompt:"Make a sentence: She + play + the piano (present continuous)", expected:"She is playing the piano", accept:["she is playing the piano","she's playing the piano"]},
+    {prompt:"Make a sentence: They + swim + in the pool (present continuous)", expected:"They are swimming in the pool", accept:["they are swimming in the pool","they're swimming in the pool"]},
+    {prompt:"Answer: Who is your teacher?", expected:"My teacher is", accept:["my teacher is","she is my teacher","he is my teacher"], free:true},
+    {prompt:"Use 'myself' in a sentence", expected:"I can do it by myself", accept:["i can do it by myself","i did it by myself","i made it by myself","i dressed myself"], free:true},
+    {prompt:"Make a sentence: The cat + sleep + on the bed (present continuous)", expected:"The cat is sleeping on the bed", accept:["the cat is sleeping on the bed"]},
+    {prompt:"Use 'himself' in a sentence about a boy", expected:"The boy dressed himself", accept:["the boy dressed himself","he hurt himself","he did it by himself","he made it himself","the boy helped himself"], free:true},
+    {prompt:"Say this sentence: The workers are building a big ship.", expected:"The workers are building a big ship", accept:["the workers are building a big ship"]},
+    {prompt:"Make a question with 'Where': Where + the children + play?", expected:"Where are the children playing", accept:["where are the children playing","where do the children play"]},
+    {prompt:"Say: Takahashi invented unusual robots.", expected:"Takahashi invented unusual robots", accept:["takahashi invented unusual robots"]},
+  ];
+  const selected=pick(drills,8);
+  const conv=[];
+  conv.push({type:'teacher-speak',text:"Let's practice grammar by speaking! I'll give you a task, and you say the sentence out loud.",speakText:"Let's practice grammar by speaking! I'll give you a task, and you say the sentence out loud."});
+
+  selected.forEach((item,i)=>{
+    conv.push({
+      type:'teacher-speak',
+      text:`Task ${i+1}: ${item.prompt}`,
+      speakText:item.prompt
+    });
+    conv.push({
+      type:'student-speak',
+      expected:item.expected,
+      acceptAll:item.accept,
+      prompt:item.prompt,
+      matchMode:item.free?'free':'sentence',
+      hint:`Try saying: "${item.expected}"`
+    });
+  });
+  conv.push({type:'teacher-speak',text:"Excellent grammar practice! You're getting better and better!",speakText:"Excellent grammar practice! You're getting better and better!"});
+  return conv;
+}
+
+// Mode 4: Free Talk (role play)
+function genFreeTalkConv(){
+  const conv=[];
+  const topics=[
+    {
+      intro:"Let's pretend we're at school! I'm your new friend. Let's chat!",
+      exchanges:[
+        {q:"Hi! What is your name?", accept:["my name is","i am","i'm","oliver"], hint:"Say: My name is Oliver."},
+        {q:"Nice to meet you! How old are you?", accept:["i am","i'm","years old","seven","eight","nine","ten"], hint:"Say: I am ___ years old.", free:true},
+        {q:"What is your favorite subject?", accept:["my favorite subject is","i like","english","math","science","art","music","pe"], hint:"Say: My favorite subject is ___.", free:true},
+        {q:"What do you like to do after school?", accept:["i like to","i like","play","read","watch","games","sport"], hint:"Say: I like to ___.", free:true},
+        {q:"What are you doing right now?", accept:["i am","i'm","studying","practicing","speaking","talking","learning"], hint:"Say: I am studying English!", free:true},
+      ]
+    },
+    {
+      intro:"Let's pretend you're visiting a shipyard! I'm a worker. Ask me questions!",
+      exchanges:[
+        {q:"Welcome to the shipyard! What do you want to know about ships?",accept:["how","what","do you","is it","are the","can you"], hint:"Ask a question like: How do you build a ship?", free:true},
+        {q:"We build ships with steel. Do you know what steel is made of?", accept:["metal","two kinds of metal","yes","no","i think"], hint:"Say: Steel is made of two kinds of metal.", free:true},
+        {q:"Right! What do workers wear to protect their heads?", accept:["helmet","a helmet","they wear a helmet","helmets"], hint:"It starts with 'h'."},
+        {q:"Yes, a helmet! Why do we check the joints?", accept:["leak","water","sink","so the ship","because","to make sure"], hint:"If a joint leaks, the ship might...", free:true},
+        {q:"Exactly! Would you like to ride on a big ship someday?", accept:["yes","no","i would","i want","i'd like"], hint:"Say: Yes, I would like to!", free:true},
+      ]
+    }
+  ];
+
+  const topic=topics[Math.floor(Math.random()*topics.length)];
+  conv.push({type:'teacher-speak',text:topic.intro,speakText:topic.intro});
+
+  topic.exchanges.forEach((ex,i)=>{
+    conv.push({type:'teacher-speak',text:ex.q,speakText:ex.q});
+    conv.push({
+      type:'student-speak',
+      expected:'',
+      acceptAll:ex.accept,
+      prompt:ex.q,
+      hint:ex.hint,
+      matchMode:'free'
+    });
+  });
+  conv.push({type:'teacher-speak',text:"That was a great conversation! I really enjoyed talking with you, Oliver! Keep practicing!",speakText:"That was a great conversation! I really enjoyed talking with you! Keep practicing!"});
+  return conv;
+}
+
+// =========== UI ===========
+function goHome(){
+  mode='';step=0;convData=[];
+  $('backBtn').style.display='none';
+  stopListening();
+  speechSynthesis.cancel();
+  $('app').innerHTML=`
+    <div class="mode-select">
+      <h2>Speaking Practice</h2>
+      <p>Choose a practice mode and start talking!</p>
+      <div class="mode-cards">
+        <div class="mode-card" onclick="startMode('vocab')">
+          <div class="mode-icon">&#128483;</div>
+          <div><h3>Vocabulary Pronunciation</h3><p>Listen to vocabulary words and repeat them. Practice pronunciation of key words from your stories.</p></div>
+        </div>
+        <div class="mode-card" onclick="startMode('qa')">
+          <div class="mode-icon">&#128172;</div>
+          <div><h3>Story Q&A</h3><p>Answer questions about the stories: Robot Inventor, What's That Sound, and Joy of a Ship.</p></div>
+        </div>
+        <div class="mode-card" onclick="startMode('grammar')">
+          <div class="mode-icon">&#128218;</div>
+          <div><h3>Grammar Speaking Drills</h3><p>Practice present continuous, reflexive pronouns, and question words by speaking full sentences.</p></div>
+        </div>
+        <div class="mode-card" onclick="startMode('free')">
+          <div class="mode-icon">&#127911;</div>
+          <div><h3>Free Talk (Role Play)</h3><p>Have a real conversation! Chat about school, hobbies, or pretend you're visiting a shipyard.</p></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function startMode(m){
+  mode=m;step=0;
+  $('backBtn').style.display='block';
+
+  switch(m){
+    case 'vocab': convData=genVocabConv(); break;
+    case 'qa': convData=genQAConv(); break;
+    case 'grammar': convData=genGrammarConv(); break;
+    case 'free': convData=genFreeTalkConv(); break;
+  }
+
+  $('app').innerHTML=`
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="avatar teacher">&#129489;&#8205;&#127979;</div>
+        <div>
+          <div class="name">Ms. Emma (English Teacher)</div>
+          <div class="status">Online - Ready to chat!</div>
+        </div>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="input-area" id="inputArea">
+        <div class="prompt-text" id="promptText">Starting conversation...</div>
+        <div class="input-row">
+          <button class="mic-btn" id="micBtn" onclick="toggleMic()" disabled>&#127908;</button>
+        </div>
+        <div class="input-row">
+          <button class="hint-btn" id="hintBtn" style="display:none" onclick="showHint()">&#128161; Hint</button>
+          <button class="skip-btn" id="skipBtn" style="display:none" onclick="skipTurn()">Skip &#8594;</button>
+        </div>
+        <div class="listen-text">Tap the microphone to speak (use Chrome for best results)</div>
+      </div>
+    </div>`;
+
+  setTimeout(()=>playStep(),600);
+}
+
+function addMessage(who,html,extra=''){
+  const msgs=$('messages');
+  const div=document.createElement('div');
+  div.className=`msg ${who}`;
+  const label=who==='teacher'?'&#129489;&#8205;&#127979; Ms. Emma':'&#128102; Oliver';
+  div.innerHTML=`<div class="label">${label}</div><div class="text">${html}</div>${extra}`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+function addTyping(){
+  const msgs=$('messages');
+  const div=document.createElement('div');
+  div.className='typing-indicator';
+  div.id='typingDots';
+  div.innerHTML='<span></span><span></span><span></span>';
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function removeTyping(){
+  const el=$('typingDots');
+  if(el)el.remove();
+}
+
+async function playStep(){
+  if(step>=convData.length){
+    // End of conversation
+    addMessage('teacher','That was great practice! You earned stars! &#127775;');
+    speak("That was great practice! You earned stars!");
+    setPrompt('Conversation complete! Go back to try another mode.');
+    const btn=document.querySelector('.mic-btn');
+    if(btn)btn.disabled=true;
+    $('hintBtn').style.display='none';
+    $('skipBtn').style.display='none';
+    return;
+  }
+
+  const item=convData[step];
+
+  if(item.type==='teacher-speak'){
+    addTyping();
+    await new Promise(r=>setTimeout(r,800));
+    removeTyping();
+    addMessage('teacher',item.text);
+    await speak(item.speakText||item.text.replace(/<[^>]+>/g,''));
+    step++;
+    await new Promise(r=>setTimeout(r,400));
+    playStep();
+  }
+  else if(item.type==='student-speak'){
+    setPrompt(item.prompt||'Your turn to speak!');
+    const btn=document.querySelector('.mic-btn');
+    if(btn)btn.disabled=false;
+    if(item.hint){$('hintBtn').style.display='inline-block'}else{$('hintBtn').style.display='none'}
+    $('skipBtn').style.display='inline-block';
+    currentExpected=item;
+  }
+}
+
+function toggleMic(){
+  if(isRecording){stopListening();return}
+  setPrompt('Listening... speak now!');
+  startListening((results)=>{
+    const best=results[0].text;
+    processAnswer(best,results);
+  });
+}
+
+function processAnswer(transcript, allResults){
+  const item=currentExpected;
+  if(!item)return;
+
+  // Add student message
+  addMessage('student',transcript);
+
+  // Evaluate
+  let score=0;
+  const nTranscript=norm(transcript);
+
+  if(item.matchMode==='word'){
+    // Simple word match
+    const nExpected=norm(item.expected);
+    if(nTranscript.includes(nExpected)){score=1}
+    else{
+      // Check alternatives
+      for(const r of allResults){if(norm(r.text).includes(nExpected)){score=0.8;break}}
+    }
+  }
+  else if(item.matchMode==='sentence'){
+    const sim=similarity(transcript,item.expected);
+    score=sim;
+  }
+  else if(item.matchMode==='qa'||item.matchMode==='free'){
+    // Check if any accept keyword is in the answer
+    if(item.acceptAll){
+      for(const a of item.acceptAll){
+        if(nTranscript.includes(norm(a))){score=1;break}
+      }
+      if(score===0){
+        // Partial match
+        for(const a of item.acceptAll){
+          const s=similarity(transcript,a);
+          if(s>score)score=s;
+        }
+      }
+    }
+    if(item.matchMode==='free'&&nTranscript.length>2) score=Math.max(score,0.6);
+  }
+
+  // Feedback
+  let fbClass,fbText,starEarned=0;
+  if(score>=0.8){
+    fbClass='good';fbText='Excellent pronunciation!';starEarned=3;
+    if(item.matchMode==='qa')fbText='Great answer!';
+    if(item.matchMode==='free')fbText='Nice speaking!';
+  } else if(score>=0.5){
+    fbClass='fix';fbText=`Good try! The expected answer is: "${item.expected}"`;starEarned=1;
+    if(item.matchMode==='free'){fbClass='good';fbText='Good job speaking English!';starEarned=2}
+  } else {
+    fbClass='try';fbText=`Let's practice this one! The answer is: "${item.expected}"`;starEarned=0;
+    if(item.matchMode==='free'){fbClass='fix';fbText='Try to say more! '+item.hint;starEarned=1}
+  }
+
+  if(starEarned>0)addStar(starEarned);
+
+  const scoreLabel=score>=0.8?'great':score>=0.5?'good':'retry';
+  const scoreEmoji=score>=0.8?'&#128077;':score>=0.5?'&#128079;':'&#128170;';
+  const extra=`<div class="feedback ${fbClass}"><span class="pron-score ${scoreLabel}">${scoreEmoji} ${Math.round(score*100)}%</span> ${fbText}</div>`;
+
+  // Add teacher feedback as part of the last teacher message? No, add new message
+  setTimeout(()=>{
+    addTyping();
+    setTimeout(()=>{
+      removeTyping();
+      addMessage('teacher',fbText);
+      if(score>=0.8){speak('Excellent!')}
+      else if(score>=0.5){speak(fbText.replace(/<[^>]+>/g,''),0.85)}
+      else{speak(item.expected,0.75)}
+
+      // Move on
+      const btn=document.querySelector('.mic-btn');
+      if(btn)btn.disabled=true;
+      $('hintBtn').style.display='none';
+      $('skipBtn').style.display='none';
+
+      setTimeout(()=>{
+        step++;
+        playStep();
+      },2500);
+    },600);
+  },500);
+}
+
+function showHint(){
+  const item=currentExpected;
+  if(!item||!item.hint)return;
+  setPrompt(`&#128161; Hint: ${item.hint}`);
+  speak(item.hint);
+}
+
+function skipTurn(){
+  const item=currentExpected;
+  if(!item)return;
+  addMessage('student','(skipped)');
+  if(item.expected){
+    addMessage('teacher',`No worries! The answer is: "<b>${item.expected}</b>"`);
+    speak(`The answer is: ${item.expected}`,0.8);
+  }
+  const btn=document.querySelector('.mic-btn');
+  if(btn)btn.disabled=true;
+  $('hintBtn').style.display='none';
+  $('skipBtn').style.display='none';
+  setTimeout(()=>{step++;playStep()},2500);
+}
+
+// =========== INIT ===========
+goHome();
+</script>
+</body>
+</html>

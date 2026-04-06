@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oliver's Exam Review - Interactive Study Games</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+  }
+
+  .app-header {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  }
+
+  .app-header h1 { font-size: 1.6em; }
+  .app-header .stars { font-size: 1.3em; }
+  #starCount { font-weight: 800; font-size: 1.4em; }
+
+  .nav-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 15px 20px;
+    justify-content: center;
+  }
+
+  .nav-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 25px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+
+  .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  .nav-btn.active { transform: scale(1.05); box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
+  .nav-btn:nth-child(1) { background: #FF6B6B; }
+  .nav-btn:nth-child(2) { background: #4ECDC4; }
+  .nav-btn:nth-child(3) { background: #45B7D1; }
+  .nav-btn:nth-child(4) { background: #96CEB4; }
+  .nav-btn:nth-child(5) { background: #FFEAA7; color: #333; }
+  .nav-btn:nth-child(6) { background: #DDA0DD; }
+  .nav-btn:nth-child(7) { background: #FF8C42; }
+
+  .game-area {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 20px 40px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
+  @keyframes starPop { 0%{transform:scale(0)} 50%{transform:scale(1.5)} 100%{transform:scale(1)} }
+  @keyframes confetti { 0%{opacity:1;transform:translateY(0) rotate(0)} 100%{opacity:0;transform:translateY(300px) rotate(720deg)} }
+
+  .correct-anim { animation: bounce 0.5s ease; }
+  .wrong-anim { animation: shake 0.5s ease; }
+
+  h2 { color: #5B4FBE; margin-bottom: 20px; font-size: 1.5em; }
+  h3 { color: #666; margin-bottom: 15px; }
+
+  /* Flashcard styles */
+  .flashcard-container { perspective: 1000px; cursor: pointer; margin: 20px auto; max-width: 500px; }
+  .flashcard {
+    width: 100%; min-height: 250px;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-front, .flashcard-back {
+    position: absolute; width: 100%; min-height: 250px;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px; text-align: center;
+  }
+  .flashcard-front {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
+  .flashcard-front .word { font-size: 2.5em; font-weight: 800; }
+  .flashcard-front .type { font-size: 1em; opacity: 0.8; margin-top: 10px; }
+  .flashcard-back {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    transform: rotateY(180deg);
+  }
+  .flashcard-back .definition { font-size: 1.4em; font-weight: 600; }
+  .flashcard-back .sentence { font-size: 1em; margin-top: 15px; font-style: italic; opacity: 0.9; }
+
+  .card-nav { display: flex; gap: 15px; justify-content: center; margin-top: 20px; align-items: center; }
+  .card-nav button {
+    padding: 12px 25px; border: none; border-radius: 15px;
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1.1em;
+    cursor: pointer; color: white;
+    background: #5B4FBE;
+    transition: all 0.2s;
+  }
+  .card-nav button:hover { background: #4a3fa8; }
+  .card-nav .counter { font-size: 1.1em; font-weight: 700; color: #666; }
+
+  .speak-btn {
+    background: #FF6B6B !important;
+    padding: 12px 20px !important;
+    border-radius: 50% !important;
+    font-size: 1.3em !important;
+    width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Spelling Bee */
+  .spelling-area { text-align: center; }
+  .listen-btn {
+    background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+    color: white; border: none; border-radius: 50%;
+    width: 120px; height: 120px; font-size: 3em;
+    cursor: pointer; transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+    margin: 20px auto; display: block;
+  }
+  .listen-btn:hover { transform: scale(1.1); }
+  .listen-btn:active { transform: scale(0.95); }
+
+  .spell-input {
+    font-size: 2em; text-align: center;
+    padding: 15px 30px; border: 3px solid #ddd;
+    border-radius: 15px; width: 100%; max-width: 400px;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    outline: none; margin: 20px auto; display: block;
+    transition: border-color 0.3s;
+  }
+  .spell-input:focus { border-color: #667eea; }
+  .spell-input.correct { border-color: #4ECDC4; background: #e8fff5; }
+  .spell-input.wrong { border-color: #FF6B6B; background: #fff0f0; }
+
+  .check-btn {
+    background: linear-gradient(135deg, #4ECDC4, #44bd9e);
+    color: white; border: none; border-radius: 15px;
+    padding: 15px 40px; font-size: 1.2em; font-weight: 700;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+    transition: all 0.3s;
+  }
+  .check-btn:hover { transform: translateY(-2px); }
+
+  .hint-text { color: #999; font-size: 1.1em; margin: 10px 0; min-height: 30px; }
+  .result-text { font-size: 1.3em; font-weight: 700; margin: 15px 0; min-height: 40px; }
+  .result-text.correct { color: #4ECDC4; }
+  .result-text.wrong { color: #FF6B6B; }
+
+  /* Matching Game */
+  .match-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  .match-col h3 { text-align: center; margin-bottom: 10px; }
+  .match-item {
+    padding: 15px; border-radius: 12px;
+    font-weight: 600; font-size: 1.05em;
+    cursor: pointer; transition: all 0.3s;
+    text-align: center; user-select: none;
+  }
+  .match-word {
+    background: #E8E4FF; border: 3px solid transparent;
+    color: #5B4FBE;
+  }
+  .match-def {
+    background: #FFF3E0; border: 3px solid transparent;
+    color: #E65100;
+  }
+  .match-item:hover { transform: scale(1.03); }
+  .match-item.selected { border-color: #667eea; box-shadow: 0 3px 15px rgba(102,126,234,0.3); }
+  .match-item.matched { opacity: 0.5; pointer-events: none; background: #e8fff5; }
+  .match-item.wrong-match { animation: shake 0.5s; border-color: #FF6B6B; }
+
+  .score-bar {
+    background: #f0f0f0; border-radius: 10px; height: 20px;
+    margin: 15px 0; overflow: hidden;
+  }
+  .score-fill {
+    height: 100%; border-radius: 10px;
+    background: linear-gradient(90deg, #4ECDC4, #44bd9e);
+    transition: width 0.5s ease;
+  }
+
+  /* Quiz styles */
+  .quiz-question {
+    font-size: 1.2em; font-weight: 700;
+    margin-bottom: 20px; color: #333;
+    line-height: 1.6;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+  .quiz-option {
+    padding: 15px 20px; border: 3px solid #e0e0e0;
+    border-radius: 12px; cursor: pointer;
+    font-size: 1.05em; font-weight: 600;
+    transition: all 0.3s; text-align: left;
+  }
+  .quiz-option:hover { border-color: #667eea; background: #f8f7ff; }
+  .quiz-option.selected { border-color: #667eea; background: #E8E4FF; }
+  .quiz-option.correct-answer { border-color: #4ECDC4; background: #e8fff5; }
+  .quiz-option.wrong-answer { border-color: #FF6B6B; background: #fff0f0; }
+
+  .quiz-nav { display: flex; gap: 15px; justify-content: center; margin-top: 25px; }
+  .quiz-progress { text-align: center; color: #999; margin-bottom: 15px; }
+
+  /* Sentence Unscramble */
+  .scramble-words {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; margin: 20px 0; min-height: 60px;
+  }
+  .scramble-word {
+    padding: 10px 18px; background: #E8E4FF;
+    border-radius: 10px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    font-size: 1.1em; color: #5B4FBE;
+    user-select: none;
+  }
+  .scramble-word:hover { transform: scale(1.05); background: #d4cdff; }
+  .scramble-word.used { opacity: 0.3; pointer-events: none; }
+
+  .answer-area {
+    min-height: 60px; border: 3px dashed #ddd;
+    border-radius: 15px; padding: 15px;
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; margin: 15px 0;
+    transition: border-color 0.3s;
+  }
+  .answer-area.correct { border-color: #4ECDC4; background: #e8fff5; }
+  .answer-area.wrong { border-color: #FF6B6B; background: #fff0f0; }
+
+  .placed-word {
+    padding: 10px 18px; background: #667eea;
+    border-radius: 10px; font-weight: 700;
+    cursor: pointer; color: white; font-size: 1.1em;
+    transition: all 0.2s;
+  }
+  .placed-word:hover { background: #5a5fd4; }
+
+  /* True/False */
+  .tf-buttons { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
+  .tf-btn {
+    padding: 20px 50px; border: none; border-radius: 15px;
+    font-size: 1.3em; font-weight: 800;
+    cursor: pointer; transition: all 0.3s;
+    font-family: 'Nunito', sans-serif;
+  }
+  .tf-btn.true-btn { background: #4ECDC4; color: white; }
+  .tf-btn.false-btn { background: #FF6B6B; color: white; }
+  .tf-btn:hover { transform: scale(1.05); }
+
+  /* Story Review */
+  .story-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .story-tab {
+    padding: 8px 16px; border: 2px solid #667eea;
+    border-radius: 20px; cursor: pointer;
+    font-weight: 600; font-size: 0.9em;
+    background: white; color: #667eea;
+    transition: all 0.3s;
+  }
+  .story-tab.active { background: #667eea; color: white; }
+  .story-info { line-height: 1.8; }
+  .story-info h3 { color: #5B4FBE; margin: 15px 0 8px; }
+  .story-info p { margin: 5px 0; }
+  .story-info .label { font-weight: 700; color: #667eea; }
+
+  /* Week selector */
+  .week-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; justify-content: center; }
+  .week-btn {
+    padding: 8px 16px; border: 2px solid #ddd; border-radius: 20px;
+    cursor: pointer; font-weight: 600; background: white;
+    transition: all 0.3s; font-size: 0.9em;
+  }
+  .week-btn.active { background: #667eea; color: white; border-color: #667eea; }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed; width: 10px; height: 10px;
+    animation: confetti 1.5s ease forwards;
+    z-index: 9999; pointer-events: none;
+  }
+
+  .final-score {
+    text-align: center; padding: 30px;
+  }
+  .final-score .big-star { font-size: 4em; animation: starPop 0.5s ease; }
+  .final-score .score-text { font-size: 2em; font-weight: 800; color: #5B4FBE; margin: 15px 0; }
+  .final-score .message { font-size: 1.2em; color: #666; }
+
+  .mic-area { text-align: center; margin: 15px 0; }
+  .mic-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white; border: none; border-radius: 50%;
+    width: 70px; height: 70px; font-size: 1.8em;
+    cursor: pointer; transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(102,126,234,0.4);
+  }
+  .mic-btn:hover { transform: scale(1.1); }
+  .mic-btn.recording { background: linear-gradient(135deg, #FF6B6B, #ee5a24); animation: bounce 1s infinite; }
+  .mic-status { font-size: 0.9em; color: #999; margin-top: 8px; }
+
+  @media (max-width: 600px) {
+    .match-grid { grid-template-columns: 1fr; }
+    .flashcard-front .word { font-size: 1.8em; }
+    .nav-btn { padding: 8px 14px; font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>Oliver's Exam Review</h1>
+  <div class="stars">Stars: <span id="starCount">0</span></div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn" onclick="showSection('flashcards')">Flashcards</button>
+  <button class="nav-btn" onclick="showSection('spelling')">Spelling Bee</button>
+  <button class="nav-btn" onclick="showSection('matching')">Matching</button>
+  <button class="nav-btn" onclick="showSection('quiz')">Story Quiz</button>
+  <button class="nav-btn" onclick="showSection('scramble')">Unscramble</button>
+  <button class="nav-btn" onclick="showSection('truefalse')">True or False</button>
+  <button class="nav-btn" onclick="showSection('review')">Story Review</button>
+</div>
+
+<div class="game-area">
+  <div id="content"></div>
+</div>
+
+<script>
+// ============= DATA =============
+const vocabData = {
+  "Week 3 - Robot Inventor": [
+    { word: "begin", type: "verb", def: "to start", sentence: "He began to build a robot.", zh: "開始" },
+    { word: "better", type: "adjective", def: "being more than good", sentence: "He made a better robot.", zh: "更好的" },
+    { word: "guess", type: "verb", def: "to try to answer when you are not sure", sentence: "Can you guess what this does?", zh: "猜測" },
+    { word: "learn", type: "verb", def: "to gain knowledge or a new skill", sentence: "He took classes to learn how they move.", zh: "學習" },
+    { word: "right", type: "adjective", def: "correct or good", sentence: "This clock tells the right time.", zh: "正確的" },
+    { word: "sure", type: "adjective", def: "knowing something very well", sentence: "Takahashi is sure of one thing.", zh: "確定的" },
+    { word: "idea", type: "noun", def: "a picture or thought in your mind", sentence: "Takahashi had an idea.", zh: "想法" },
+    { word: "unusual", type: "adjective", def: "not common", sentence: "This new bike is unusual.", zh: "不尋常的" },
+    { word: "invent", type: "verb", def: "to make something new", sentence: "Thomas Edison invented the light bulb.", zh: "發明" },
+    { word: "rope", type: "noun", def: "a long, thick piece of string", sentence: "The robot climbed up a cliff with a rope.", zh: "繩子" }
+  ],
+  "Week 4 - Robot Inventor": [
+    { word: "comic book", type: "noun", def: "a book that tells stories using pictures", sentence: "He read comic books about robots.", zh: "漫畫書" },
+    { word: "imagination", type: "noun", def: "an idea or picture you make in your mind", sentence: "He used his imagination to make shapes.", zh: "想像力" },
+    { word: "bend", type: "verb", def: "to move something so it is no longer straight", sentence: "The robots bent their legs when they walked.", zh: "彎曲" },
+    { word: "contest", type: "noun", def: "a game, a race, or a talent show", sentence: "Takahashi put his robots in contests.", zh: "比賽" },
+    { word: "waterproof", type: "adjective", def: "not allowing water to go through", sentence: "Takahashi made the swimming robot waterproof.", zh: "防水的" },
+    { word: "company", type: "noun", def: "something set up by people to do business", sentence: "Takahashi started his company.", zh: "公司" },
+    { word: "solve", type: "verb", def: "to find the answer", sentence: "There were many problems to solve.", zh: "解決" },
+    { word: "fin", type: "noun", def: "a thin body part used for swimming", sentence: "He gave it arms like fins.", zh: "鰭" },
+    { word: "soar", type: "verb", def: "to fly or rise in the air", sentence: "Will his robots fly and soar?", zh: "翱翔" },
+    { word: "wait", type: "verb", def: "to stay where you are until something happens", sentence: "We must wait and see.", zh: "等待" }
+  ],
+  "Week 5 - What's That Sound": [
+    { word: "early", type: "adverb", def: "before the usual time", sentence: "It started early this morning.", zh: "早地" },
+    { word: "instead", type: "adverb", def: "do one thing and not the other", sentence: "Let's find Ana instead.", zh: "代替" },
+    { word: "nothing", type: "pronoun", def: "not anything", sentence: "Nothing else sounds like the woodpecker.", zh: "沒有東西" },
+    { word: "driveway", type: "noun", def: "a short road from the street to a house", sentence: "They found Ana in the driveway.", zh: "車道" },
+    { word: "thought", type: "verb", def: "to have an idea about something", sentence: "I thought it might stop.", zh: "想" },
+    { word: "scramble", type: "verb", def: "to move or climb quickly", sentence: "The bird scrambled up the tree.", zh: "攀爬" },
+    { word: "suddenly", type: "adverb", def: "quickly; surprisingly", sentence: "Suddenly, he shouted.", zh: "突然地" },
+    { word: "woodpecker", type: "noun", def: "a bird with a strong beak that looks for bugs", sentence: "It's a woodpecker pecking for bugs.", zh: "啄木鳥" },
+    { word: "deck", type: "noun", def: "a floor made of wood outside of a house", sentence: "Gramps was sweeping the deck.", zh: "露台" },
+    { word: "saw", type: "noun", def: "a tool to cut wood", sentence: "Dad was cutting wood with his saw.", zh: "鋸子" }
+  ],
+  "Week 6 - What's That Sound": [
+    { word: "sound", type: "noun", def: "something people or animals can hear", sentence: "What's that sound?", zh: "聲音" },
+    { word: "garage", type: "noun", def: "a building where cars are kept", sentence: "Let's check out the garage.", zh: "車庫" },
+    { word: "check", type: "verb", def: "to look at something to make sure it's correct", sentence: "Let's check out the garage.", zh: "檢查" },
+    { word: "sweep", type: "verb", def: "to clean the floor with a broom", sentence: "Gramps was sweeping the deck.", zh: "掃" },
+    { word: "broom", type: "noun", def: "a thing with a long handle used to clean", sentence: "Gramps was sweeping with a broom.", zh: "掃把" },
+    { word: "bounce", type: "verb", def: "to throw or hit something so it comes back", sentence: "Ana was bouncing a ball.", zh: "彈跳" },
+    { word: "hopeless", type: "adjective", def: "without hope", sentence: "This is hopeless! sighed Marta.", zh: "無望的" },
+    { word: "crown", type: "noun", def: "a fancy thing kings and queens wear on their heads", sentence: "It's red, like a red crown.", zh: "皇冠" },
+    { word: "peck", type: "verb", def: "to tap or bite with its beak", sentence: "It's a woodpecker pecking for bugs.", zh: "啄" },
+    { word: "look", type: "verb", def: "to focus your eyes on something", sentence: "Look at the color on its head.", zh: "看" }
+  ],
+  "Week 7 - Joy of a Ship": [
+    { word: "above", type: "preposition", def: "higher than or over something", sentence: "The crane is above the building.", zh: "在...上方" },
+    { word: "build", type: "verb", def: "to make or create something", sentence: "What is needed to build a ship?", zh: "建造" },
+    { word: "fall", type: "verb", def: "to come down quickly", sentence: "The cranes hold the parts so they do not fall.", zh: "掉落" },
+    { word: "knew", type: "verb", def: "to understand something in the past", sentence: "The workers knew it would look nice!", zh: "知道(過去式)" },
+    { word: "money", type: "noun", def: "what we use to buy things", sentence: "People will pay a lot of money to ride on this ship.", zh: "錢" },
+    { word: "toward", type: "preposition", def: "in the direction of something", sentence: "The ship glides toward the open sea.", zh: "朝向" },
+    { word: "balance", type: "verb", def: "to stay in a place without falling", sentence: "The ship frame can balance on blocks.", zh: "平衡" },
+    { word: "section", type: "noun", def: "a small part of something bigger", sentence: "A worker joins each steel section.", zh: "部分" },
+    { word: "metal", type: "noun", def: "a hard material used to make things", sentence: "Two kinds of metal are melted into steel.", zh: "金屬" },
+    { word: "helmet", type: "noun", def: "something you wear to protect your head", sentence: "Workers put on a helmet to protect their heads.", zh: "頭盔" }
+  ]
+};
+
+const allVocab = Object.values(vocabData).flat();
+
+const storyQuizData = [
+  // Robot Inventor questions
+  { q: "Where was Tomotaka Takahashi born?", options: ["China", "Japan", "Korea", "USA"], answer: 1, story: "Robot Inventor" },
+  { q: "When was Takahashi born?", options: ["1965", "1985", "1975", "1995"], answer: 2, story: "Robot Inventor" },
+  { q: "What did Takahashi play with as a child?", options: ["Robots", "Blocks", "Cars", "Dolls"], answer: 1, story: "Robot Inventor" },
+  { q: "What did Takahashi read as a child?", options: ["Newspapers", "Comic books", "Textbooks", "Magazines"], answer: 1, story: "Robot Inventor" },
+  { q: "When did Takahashi begin to study robots?", options: ["1995", "2003", "1999", "2011"], answer: 2, story: "Robot Inventor" },
+  { q: "What was the problem with early robots when they walked?", options: ["They were too fast", "Their legs did not bend", "They were too small", "They fell down"], answer: 1, story: "Robot Inventor" },
+  { q: "When did Takahashi start his own company?", options: ["1999", "2003", "2011", "1975"], answer: 1, story: "Robot Inventor" },
+  { q: "What did one of Takahashi's robots climb?", options: ["A tree", "A building", "A cliff with a rope", "A mountain"], answer: 2, story: "Robot Inventor" },
+  { q: "What did Takahashi give the swimming robot to help it swim?", options: ["Wheels", "Wings", "Arms like fins", "A motor"], answer: 2, story: "Robot Inventor" },
+  { q: "How far did the running robot run?", options: ["10 miles", "26 miles", "50 miles", "100 miles"], answer: 1, story: "Robot Inventor" },
+  { q: "The genre of 'The Story of a Robot Inventor' is a:", options: ["Fairy tale", "Biography", "Poem", "Fantasy"], answer: 1, story: "Robot Inventor" },
+
+  // Now, What's That Sound? questions
+  { q: "What sound did the kids hear at the beginning of the story?", options: ["Bam bam bam", "Tap-tap-tap, Rat-a-tat-tat", "Zing zing zing", "Swish swish swish"], answer: 1, story: "What's That Sound" },
+  { q: "Who asked 'What's that sound?'", options: ["Marta", "Ana", "Gilbert", "Gramps"], answer: 2, story: "What's That Sound" },
+  { q: "Where did the kids first look for the sound?", options: ["The backyard", "The garage", "The driveway", "The kitchen"], answer: 1, story: "What's That Sound" },
+  { q: "What was Dad doing in the garage?", options: ["Fixing a car", "Cutting a board with his saw", "Painting", "Cleaning"], answer: 1, story: "What's That Sound" },
+  { q: "What sound did the saw make?", options: ["Tap tap tap", "Bam bam bam", "Zing, zing, zing", "Swish swish swish"], answer: 2, story: "What's That Sound" },
+  { q: "What was Gramps doing?", options: ["Cooking", "Sweeping the deck with a broom", "Reading", "Sleeping"], answer: 1, story: "What's That Sound" },
+  { q: "What was Ana doing in the driveway?", options: ["Drawing", "Bouncing a ball", "Riding a bike", "Running"], answer: 1, story: "What's That Sound" },
+  { q: "What was actually making the tap-tap-tap sound?", options: ["A hammer", "A drum", "A woodpecker", "Rain"], answer: 2, story: "What's That Sound" },
+  { q: "What color was on the woodpecker's head?", options: ["Blue", "Green", "Red, like a crown", "Yellow"], answer: 2, story: "What's That Sound" },
+  { q: "The genre of 'Now, What's That Sound?' is:", options: ["Nonfiction", "Realistic Fiction", "Fantasy", "Poetry"], answer: 1, story: "What's That Sound" },
+
+  // Joy of a Ship questions
+  { q: "What is the first step in building a ship?", options: ["Paint it", "Build a frame", "Make steel sheets", "Check for leaks"], answer: 1, story: "Joy of a Ship" },
+  { q: "What are used to hoist big parts in place?", options: ["Workers", "Huge cranes", "Trucks", "Helicopters"], answer: 1, story: "Joy of a Ship" },
+  { q: "What are two kinds of metal melted into?", options: ["Iron", "Copper", "Steel", "Gold"], answer: 2, story: "Joy of a Ship" },
+  { q: "How do workers join steel sections?", options: ["With glue", "By heating the edges (called joints)", "With rope", "With tape"], answer: 1, story: "Joy of a Ship" },
+  { q: "Why do workers wear helmets and gloves?", options: ["To look cool", "To protect their hands and head", "Because it's cold", "For fun"], answer: 1, story: "Joy of a Ship" },
+  { q: "What happens if a joint leaks?", options: ["Nothing", "The ship will be moist and might sink", "The ship goes faster", "It makes noise"], answer: 1, story: "Joy of a Ship" },
+  { q: "What do workers check after joining the steel?", options: ["The color", "All the joints for leaks", "The windows", "The engine"], answer: 1, story: "Joy of a Ship" },
+  { q: "What happens at the very end when the ship is done?", options: ["It is destroyed", "It gleams in the sun and goes out to sea", "It stays at the dock", "Workers take it apart"], answer: 1, story: "Joy of a Ship" },
+  { q: "The genre of 'The Joy of a Ship' is:", options: ["Fiction", "Nonfiction", "Poetry", "Fantasy"], answer: 1, story: "Joy of a Ship" },
+  { q: "How high can some huge gantry cranes lift?", options: ["50 feet", "100 feet", "230 feet", "500 feet"], answer: 2, story: "Joy of a Ship" }
+];
+
+const scrambleSentences = [
+  { words: ["He", "began", "to", "build", "a", "robot."], correct: "He began to build a robot." },
+  { words: ["Takahashi", "invents", "unusual", "robots."], correct: "Takahashi invents unusual robots." },
+  { words: ["The", "bird", "scrambled", "up", "the", "tree."], correct: "The bird scrambled up the tree." },
+  { words: ["Workers", "put", "on", "a", "helmet."], correct: "Workers put on a helmet." },
+  { words: ["Dad", "was", "cutting", "a", "board", "with", "his", "saw."], correct: "Dad was cutting a board with his saw." },
+  { words: ["The", "ship", "gleams", "in", "the", "sun."], correct: "The ship gleams in the sun." },
+  { words: ["He", "used", "his", "imagination", "to", "make", "shapes."], correct: "He used his imagination to make shapes." },
+  { words: ["Gramps", "was", "sweeping", "the", "deck."], correct: "Gramps was sweeping the deck." },
+  { words: ["Two", "kinds", "of", "metal", "are", "melted", "into", "steel."], correct: "Two kinds of metal are melted into steel." },
+  { words: ["Ana", "was", "bouncing", "a", "ball."], correct: "Ana was bouncing a ball." },
+  { words: ["It's", "a", "woodpecker", "pecking", "for", "bugs."], correct: "It's a woodpecker pecking for bugs." },
+  { words: ["The", "robots", "bent", "their", "legs."], correct: "The robots bent their legs." }
+];
+
+const trueFalseData = [
+  { statement: "Tomotaka Takahashi was born in China.", answer: false, explanation: "He was born in Japan in 1975." },
+  { statement: "Takahashi played with blocks as a child.", answer: true, explanation: "He used blocks and his imagination to make shapes." },
+  { statement: "The tap-tap-tap sound was made by a hammer.", answer: false, explanation: "It was made by a woodpecker pecking for bugs." },
+  { statement: "Gilbert, Marta, and Ana are characters in 'Now, What's That Sound?'", answer: true, explanation: "They are the three children looking for the sound." },
+  { statement: "Steel is made by melting two kinds of metal.", answer: true, explanation: "Two kinds of metal are melted into steel to make ships." },
+  { statement: "Workers don't need to check for leaks on a ship.", answer: false, explanation: "Workers must check all joints because if a joint leaks, the ship might sink!" },
+  { statement: "A biography is a story about a real person's life.", answer: true, explanation: "It is written by another person about someone's real life." },
+  { statement: "The suffix -less means 'full of'.", answer: false, explanation: "The suffix -less means 'without'. For example, hopeless means without hope." },
+  { statement: "The prefix un- means 'not'.", answer: true, explanation: "For example, unusual means not usual, or not common." },
+  { statement: "Gramps was sweeping the driveway with a mop.", answer: false, explanation: "Gramps was sweeping the deck with a broom." },
+  { statement: "Takahashi's swimming robot had arms like fins.", answer: true, explanation: "He gave the robot arms like fins to help it swim faster." },
+  { statement: "Huge gantry cranes can lift 1,500 tons.", answer: true, explanation: "Some huge gantry cranes can lift 1,500 tons as high as 230 feet." },
+  { statement: "The sound 'zing zing zing' came from a saw.", answer: true, explanation: "Dad was in the garage cutting a board with his saw." },
+  { statement: "'Now, What's That Sound?' is a nonfiction text.", answer: false, explanation: "It is realistic fiction - a made-up story that could happen in real life." },
+  { statement: "Takahashi started his company in 2003.", answer: true, explanation: "In 2003, Takahashi started his own company." }
+];
+
+// ============= STATE =============
+let totalStars = 0;
+let currentSection = '';
+
+// ============= HELPERS =============
+function speak(text, rate = 0.85) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = rate;
+  u.pitch = 1.1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+function addStars(n) {
+  totalStars += n;
+  document.getElementById('starCount').textContent = totalStars;
+  const el = document.getElementById('starCount');
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'starPop 0.4s ease';
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showConfetti() {
+  const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#DDA0DD','#96CEB4','#FF8C42'];
+  for (let i = 0; i < 30; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-10px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    c.style.animationDelay = Math.random() * 0.5 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 2000);
+  }
+}
+
+function showSection(section) {
+  currentSection = section;
+  document.querySelectorAll('.nav-btn').forEach((b, i) => {
+    const sections = ['flashcards','spelling','matching','quiz','scramble','truefalse','review'];
+    b.classList.toggle('active', sections[i] === section);
+  });
+  const renders = {
+    flashcards: renderFlashcards,
+    spelling: renderSpelling,
+    matching: renderMatching,
+    quiz: renderQuiz,
+    scramble: renderScramble,
+    truefalse: renderTrueFalse,
+    review: renderReview
+  };
+  renders[section]();
+}
+
+// ============= FLASHCARDS =============
+let fcWeek = Object.keys(vocabData)[0];
+let fcIndex = 0;
+let fcFlipped = false;
+
+function renderFlashcards() {
+  const weeks = Object.keys(vocabData);
+  const words = vocabData[fcWeek];
+  const w = words[fcIndex];
+
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <h2>Vocabulary Flashcards</h2>
+      <div class="week-selector">
+        ${weeks.map(wk => `<button class="week-btn ${wk===fcWeek?'active':''}" onclick="fcWeek='${wk}';fcIndex=0;fcFlipped=false;renderFlashcards()">${wk.split(' - ')[0]}</button>`).join('')}
+      </div>
+      <p style="text-align:center;color:#999;margin-bottom:5px">Click the card to flip! Click the speaker to hear the word.</p>
+      <div class="flashcard-container" onclick="fcFlipped=!fcFlipped;document.querySelector('.flashcard').classList.toggle('flipped')">
+        <div class="flashcard ${fcFlipped?'flipped':''}">
+          <div class="flashcard-front">
+            <div class="word">${w.word}</div>
+            <div class="type">(${w.type})</div>
+            <div style="margin-top:10px;font-size:1.1em;opacity:0.7">${w.zh}</div>
+          </div>
+          <div class="flashcard-back">
+            <div class="definition">${w.def}</div>
+            <div class="sentence">"${w.sentence}"</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-nav">
+        <button onclick="fcIndex=Math.max(0,fcIndex-1);fcFlipped=false;renderFlashcards()">Previous</button>
+        <button class="speak-btn" onclick="event.stopPropagation();speak('${w.word}. ${w.def}')">&#128266;</button>
+        <span class="counter">${fcIndex+1} / ${words.length}</span>
+        <button onclick="fcIndex=Math.min(${words.length-1},fcIndex+1);fcFlipped=false;renderFlashcards()">Next</button>
+      </div>
+    </div>
+  `;
+}
+
+// ============= SPELLING BEE =============
+let spWords, spIndex, spScore;
+
+function renderSpelling() {
+  spWords = shuffle(allVocab).slice(0, 15);
+  spIndex = 0;
+  spScore = 0;
+  renderSpellingQuestion();
+}
+
+function renderSpellingQuestion() {
+  if (spIndex >= spWords.length) {
+    showConfetti();
+    addStars(spScore);
+    document.getElementById('content').innerHTML = `
+      <div class="card final-score">
+        <div class="big-star">${spScore >= 12 ? '&#127775;' : spScore >= 8 ? '&#11088;' : '&#128170;'}</div>
+        <div class="score-text">${spScore} / ${spWords.length}</div>
+        <div class="message">${spScore >= 12 ? 'Amazing speller! You are a STAR!' : spScore >= 8 ? 'Great job! Keep practicing!' : 'Good try! Practice makes perfect!'}</div>
+        <button class="check-btn" style="margin-top:20px" onclick="renderSpelling()">Play Again</button>
+      </div>`;
+    return;
+  }
+  const w = spWords[spIndex];
+  document.getElementById('content').innerHTML = `
+    <div class="card spelling-area">
+      <h2>Spelling Bee</h2>
+      <div class="quiz-progress">Word ${spIndex+1} of ${spWords.length} | Score: ${spScore}</div>
+      <p style="color:#666;margin-bottom:10px">Listen to the word and type it correctly!</p>
+      <button class="listen-btn" onclick="speak('${w.word}', 0.7)" title="Click to hear the word">&#128266;</button>
+      <p class="hint-text">Hint: ${w.def}</p>
+      <input type="text" class="spell-input" id="spellInput" placeholder="Type the word here..."
+             onkeydown="if(event.key==='Enter')checkSpelling()" autocomplete="off" autocapitalize="off">
+      <div class="mic-area">
+        <button class="mic-btn" id="micBtn" onclick="startMic()" title="Click to speak the word">&#127908;</button>
+        <div class="mic-status" id="micStatus">Or click the microphone to say it!</div>
+      </div>
+      <div class="result-text" id="spellResult"></div>
+      <button class="check-btn" onclick="checkSpelling()">Check Answer</button>
+    </div>`;
+  setTimeout(() => {
+    speak(w.word, 0.7);
+    document.getElementById('spellInput').focus();
+  }, 300);
+}
+
+function checkSpelling() {
+  const input = document.getElementById('spellInput');
+  const w = spWords[spIndex];
+  const answer = input.value.trim().toLowerCase();
+  const correct = w.word.toLowerCase();
+  const result = document.getElementById('spellResult');
+
+  if (answer === correct) {
+    input.className = 'spell-input correct';
+    result.className = 'result-text correct';
+    result.textContent = 'Correct! Well done!';
+    spScore++;
+    speak('Correct!');
+  } else {
+    input.className = 'spell-input wrong';
+    result.className = 'result-text wrong';
+    result.textContent = `Not quite! The answer is: ${w.word}`;
+    speak(`The correct spelling is ${w.word}`);
+  }
+  setTimeout(() => { spIndex++; renderSpellingQuestion(); }, 2000);
+}
+
+let recognition;
+function startMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    document.getElementById('micStatus').textContent = 'Speech recognition not supported in this browser. Try Chrome!';
+    return;
+  }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  const btn = document.getElementById('micBtn');
+  btn.classList.add('recording');
+  document.getElementById('micStatus').textContent = 'Listening... speak now!';
+
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript.toLowerCase().trim();
+    document.getElementById('spellInput').value = transcript;
+    btn.classList.remove('recording');
+    document.getElementById('micStatus').textContent = `You said: "${transcript}"`;
+    checkSpelling();
+  };
+  recognition.onerror = () => {
+    btn.classList.remove('recording');
+    document.getElementById('micStatus').textContent = 'Could not hear you. Try again!';
+  };
+  recognition.onend = () => btn.classList.remove('recording');
+  recognition.start();
+}
+
+// ============= MATCHING GAME =============
+let matchWords, matchSelected, matchScore, matchTotal;
+
+function renderMatching() {
+  const pool = shuffle(allVocab).slice(0, 6);
+  matchWords = pool;
+  matchSelected = { word: null, def: null };
+  matchScore = 0;
+  matchTotal = pool.length;
+
+  const shuffledWords = shuffle(pool.map((v,i) => ({ text: v.word, idx: i })));
+  const shuffledDefs = shuffle(pool.map((v,i) => ({ text: v.def, idx: i })));
+
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <h2>Matching Game</h2>
+      <p style="color:#666;margin-bottom:15px">Match each word with its definition! Click a word, then click its meaning.</p>
+      <div class="score-bar"><div class="score-fill" id="matchFill" style="width:0%"></div></div>
+      <div class="match-grid">
+        <div class="match-col">
+          <h3>Words</h3>
+          ${shuffledWords.map(w => `<div class="match-item match-word" id="mw_${w.idx}" onclick="selectMatch('word',${w.idx})">${w.text}</div>`).join('')}
+        </div>
+        <div class="match-col">
+          <h3>Definitions</h3>
+          ${shuffledDefs.map(d => `<div class="match-item match-def" id="md_${d.idx}" onclick="selectMatch('def',${d.idx})">${d.text}</div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function selectMatch(type, idx) {
+  matchSelected[type] = idx;
+  document.querySelectorAll(`.match-${type === 'word' ? 'word' : 'def'}`).forEach(el => el.classList.remove('selected'));
+  document.getElementById(`${type === 'word' ? 'mw' : 'md'}_${idx}`).classList.add('selected');
+
+  if (matchSelected.word !== null && matchSelected.def !== null) {
+    if (matchSelected.word === matchSelected.def) {
+      document.getElementById(`mw_${matchSelected.word}`).classList.add('matched');
+      document.getElementById(`md_${matchSelected.def}`).classList.add('matched');
+      matchScore++;
+      addStars(1);
+      document.getElementById('matchFill').style.width = (matchScore / matchTotal * 100) + '%';
+      speak('Great!');
+      if (matchScore === matchTotal) {
+        showConfetti();
+        setTimeout(() => {
+          document.querySelector('.match-grid').innerHTML = `
+            <div style="text-align:center;grid-column:1/-1;padding:30px">
+              <div style="font-size:3em">&#127881;</div>
+              <div style="font-size:1.5em;font-weight:800;color:#5B4FBE;margin:15px 0">All Matched!</div>
+              <button class="check-btn" onclick="renderMatching()">Play Again</button>
+            </div>`;
+        }, 500);
+      }
+    } else {
+      const wEl = document.getElementById(`mw_${matchSelected.word}`);
+      const dEl = document.getElementById(`md_${matchSelected.def}`);
+      wEl.classList.add('wrong-match');
+      dEl.classList.add('wrong-match');
+      setTimeout(() => { wEl.classList.remove('wrong-match','selected'); dEl.classList.remove('wrong-match','selected'); }, 600);
+    }
+    matchSelected = { word: null, def: null };
+  }
+}
+
+// ============= STORY QUIZ =============
+let quizQuestions, quizIndex, quizScore, quizAnswered;
+
+function renderQuiz() {
+  quizQuestions = shuffle(storyQuizData).slice(0, 12);
+  quizIndex = 0;
+  quizScore = 0;
+  quizAnswered = false;
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  if (quizIndex >= quizQuestions.length) {
+    showConfetti();
+    addStars(quizScore * 2);
+    document.getElementById('content').innerHTML = `
+      <div class="card final-score">
+        <div class="big-star">${quizScore >= 10 ? '&#127775;' : quizScore >= 7 ? '&#11088;' : '&#128170;'}</div>
+        <div class="score-text">${quizScore} / ${quizQuestions.length}</div>
+        <div class="message">${quizScore >= 10 ? 'You know these stories so well!' : quizScore >= 7 ? 'Great reading! Almost perfect!' : 'Keep reading and try again!'}</div>
+        <button class="check-btn" style="margin-top:20px" onclick="renderQuiz()">Play Again</button>
+      </div>`;
+    return;
+  }
+  const q = quizQuestions[quizIndex];
+  quizAnswered = false;
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <h2>Story Comprehension Quiz</h2>
+      <div class="quiz-progress">Question ${quizIndex+1} of ${quizQuestions.length} | Score: ${quizScore} | Story: ${q.story}</div>
+      <div class="quiz-question">${q.q}</div>
+      <div class="quiz-options">
+        ${q.options.map((opt, i) => `<div class="quiz-option" id="qo_${i}" onclick="answerQuiz(${i},${q.answer})">${String.fromCharCode(65+i)}. ${opt}</div>`).join('')}
+      </div>
+      <div class="quiz-nav">
+        <button class="check-btn" id="quizNext" style="display:none" onclick="quizIndex++;renderQuizQuestion()">Next Question</button>
+      </div>
+    </div>`;
+}
+
+function answerQuiz(selected, correct) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+
+  document.getElementById(`qo_${correct}`).classList.add('correct-answer');
+  if (selected === correct) {
+    quizScore++;
+    speak('Correct!');
+    document.getElementById(`qo_${selected}`).classList.add('correct-anim');
+  } else {
+    document.getElementById(`qo_${selected}`).classList.add('wrong-answer','wrong-anim');
+    speak('The correct answer is ' + document.getElementById(`qo_${correct}`).textContent.slice(3));
+  }
+  document.getElementById('quizNext').style.display = 'inline-block';
+}
+
+// ============= SENTENCE UNSCRAMBLE =============
+let scrSentences, scrIndex, scrScore, scrPlaced;
+
+function renderScramble() {
+  scrSentences = shuffle(scrambleSentences).slice(0, 8);
+  scrIndex = 0;
+  scrScore = 0;
+  renderScrambleQuestion();
+}
+
+function renderScrambleQuestion() {
+  if (scrIndex >= scrSentences.length) {
+    showConfetti();
+    addStars(scrScore * 2);
+    document.getElementById('content').innerHTML = `
+      <div class="card final-score">
+        <div class="big-star">${scrScore >= 7 ? '&#127775;' : scrScore >= 5 ? '&#11088;' : '&#128170;'}</div>
+        <div class="score-text">${scrScore} / ${scrSentences.length}</div>
+        <div class="message">${scrScore >= 7 ? 'Sentence master!' : scrScore >= 5 ? 'Well done!' : 'Keep practicing your sentences!'}</div>
+        <button class="check-btn" style="margin-top:20px" onclick="renderScramble()">Play Again</button>
+      </div>`;
+    return;
+  }
+  const s = scrSentences[scrIndex];
+  scrPlaced = [];
+  const shuffled = shuffle(s.words);
+
+  document.getElementById('content').innerHTML = `
+    <div class="card" style="text-align:center">
+      <h2>Unscramble the Sentence</h2>
+      <div class="quiz-progress">Sentence ${scrIndex+1} of ${scrSentences.length} | Score: ${scrScore}</div>
+      <p style="color:#666;margin-bottom:15px">Click the words in the correct order to make a sentence!</p>
+      <div class="answer-area" id="answerArea"></div>
+      <div class="scramble-words" id="wordPool">
+        ${shuffled.map((w, i) => `<div class="scramble-word" id="sw_${i}" data-word="${w}" onclick="placeWord(${i},'${w.replace(/'/g, "\\'")}')">${w}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:15px">
+        <button class="check-btn" onclick="checkScramble()">Check</button>
+        <button class="check-btn" style="background:#FF6B6B" onclick="resetScramble()">Reset</button>
+      </div>
+      <div class="result-text" id="scrResult"></div>
+    </div>`;
+}
+
+function placeWord(idx, word) {
+  document.getElementById(`sw_${idx}`).classList.add('used');
+  scrPlaced.push({ idx, word });
+  const area = document.getElementById('answerArea');
+  const el = document.createElement('div');
+  el.className = 'placed-word';
+  el.textContent = word;
+  el.onclick = () => {
+    document.getElementById(`sw_${idx}`).classList.remove('used');
+    scrPlaced = scrPlaced.filter(p => p.idx !== idx);
+    el.remove();
+  };
+  area.appendChild(el);
+}
+
+function resetScramble() {
+  scrPlaced = [];
+  document.querySelectorAll('.scramble-word').forEach(el => el.classList.remove('used'));
+  document.getElementById('answerArea').innerHTML = '';
+  document.getElementById('scrResult').textContent = '';
+}
+
+function checkScramble() {
+  const s = scrSentences[scrIndex];
+  const answer = scrPlaced.map(p => p.word).join(' ');
+  const area = document.getElementById('answerArea');
+  const result = document.getElementById('scrResult');
+
+  if (answer === s.correct) {
+    area.classList.add('correct');
+    result.className = 'result-text correct';
+    result.textContent = 'Perfect sentence!';
+    scrScore++;
+    speak('Perfect!');
+    setTimeout(() => { scrIndex++; renderScrambleQuestion(); }, 1500);
+  } else {
+    area.classList.add('wrong');
+    result.className = 'result-text wrong';
+    result.textContent = `Try again! Correct: ${s.correct}`;
+    setTimeout(() => { area.classList.remove('wrong'); }, 1000);
+  }
+}
+
+// ============= TRUE OR FALSE =============
+let tfQuestions, tfIndex, tfScore, tfAnswered;
+
+function renderTrueFalse() {
+  tfQuestions = shuffle(trueFalseData).slice(0, 10);
+  tfIndex = 0;
+  tfScore = 0;
+  tfAnswered = false;
+  renderTFQuestion();
+}
+
+function renderTFQuestion() {
+  if (tfIndex >= tfQuestions.length) {
+    showConfetti();
+    addStars(tfScore * 2);
+    document.getElementById('content').innerHTML = `
+      <div class="card final-score">
+        <div class="big-star">${tfScore >= 8 ? '&#127775;' : tfScore >= 5 ? '&#11088;' : '&#128170;'}</div>
+        <div class="score-text">${tfScore} / ${tfQuestions.length}</div>
+        <div class="message">${tfScore >= 8 ? 'True genius!' : tfScore >= 5 ? 'Good job!' : 'Review the stories and try again!'}</div>
+        <button class="check-btn" style="margin-top:20px" onclick="renderTrueFalse()">Play Again</button>
+      </div>`;
+    return;
+  }
+  tfAnswered = false;
+  const q = tfQuestions[tfIndex];
+  document.getElementById('content').innerHTML = `
+    <div class="card" style="text-align:center">
+      <h2>True or False?</h2>
+      <div class="quiz-progress">Question ${tfIndex+1} of ${tfQuestions.length} | Score: ${tfScore}</div>
+      <div class="quiz-question" style="font-size:1.3em;margin:30px 0">${q.statement}</div>
+      <div class="tf-buttons">
+        <button class="tf-btn true-btn" id="tfTrue" onclick="answerTF(true)">TRUE</button>
+        <button class="tf-btn false-btn" id="tfFalse" onclick="answerTF(false)">FALSE</button>
+      </div>
+      <div class="result-text" id="tfResult"></div>
+    </div>`;
+}
+
+function answerTF(answer) {
+  if (tfAnswered) return;
+  tfAnswered = true;
+  const q = tfQuestions[tfIndex];
+  const result = document.getElementById('tfResult');
+
+  if (answer === q.answer) {
+    result.className = 'result-text correct';
+    result.textContent = 'Correct! ' + q.explanation;
+    tfScore++;
+    speak('Correct!');
+    document.getElementById(answer ? 'tfTrue' : 'tfFalse').style.boxShadow = '0 0 20px #4ECDC4';
+  } else {
+    result.className = 'result-text wrong';
+    result.textContent = 'Wrong! ' + q.explanation;
+    speak('The answer is ' + (q.answer ? 'true' : 'false'));
+    document.getElementById(answer ? 'tfTrue' : 'tfFalse').style.boxShadow = '0 0 20px #FF6B6B';
+    document.getElementById(q.answer ? 'tfTrue' : 'tfFalse').style.boxShadow = '0 0 20px #4ECDC4';
+  }
+  setTimeout(() => { tfIndex++; renderTFQuestion(); }, 3000);
+}
+
+// ============= STORY REVIEW =============
+let reviewStory = 'robot';
+
+function renderReview() {
+  const stories = {
+    robot: {
+      title: "The Story of a Robot Inventor",
+      genre: "Biography (Nonfiction)",
+      author: "From Wonders textbook",
+      characters: "Tomotaka Takahashi",
+      setting: "Japan, and later Hawaii for the robot race",
+      plot: "Tomotaka Takahashi was born in Japan in 1975. As a child, he played with blocks and read comic books about robots. He wanted to make real robots. In 1999, he took classes to learn about robots. He noticed the robots did not walk like people. He had an idea to make a better robot with legs that bend. In 2003, he started his own company and made many robots. He entered contests, including a sports race in Hawaii in 2011. He solved problems like making one robot waterproof to swim, one able to ride a bike, and one that could run 26 miles!",
+      keyVocab: "unusual, idea, invent, imagination, contest, waterproof, solve, fin, soar, bend, company",
+      skills: "Prefix un- (unusual = not usual), Problem & Solution, Biography, Order of events (first, next, then, last)"
+    },
+    sound: {
+      title: "Now, What's That Sound?",
+      genre: "Realistic Fiction",
+      author: "From Wonders textbook",
+      characters: "Gilbert, Marta, Ana, Dad, Gramps",
+      setting: "Around a house and yard",
+      plot: "Gilbert, Marta, and their friends hear a tap-tap-tap sound early in the morning. They go looking for it. They check the garage where Dad is cutting wood with a saw (zing zing zing), but that's not it. They find Gramps sweeping the deck with a broom (swish swish swish), but that's not it either. They find Ana bouncing a ball in the driveway (bam bam bam), but that's not it. Finally, they look up at a tall tree and discover a woodpecker pecking for bugs! The tap-tap-tap was the woodpecker all along!",
+      keyVocab: "early, instead, suddenly, scramble, thought, driveway, deck, saw, sound, hopeless, crown, peck",
+      skills: "Suffix -less (hopeless = without hope), Suffix -ly (quickly), Onomatopoeia (sound words), Beginning/Middle/End"
+    },
+    ship: {
+      title: "The Joy of a Ship",
+      genre: "Nonfiction (Informational Text)",
+      author: "TIME for Kids, from Wonders textbook",
+      characters: "Workers, builders",
+      setting: "A shipyard / dock",
+      plot: "This text explains step by step how a ship is built. First, workers build a frame that can balance on blocks above a dock. Huge cranes hoist the big parts. Next, two kinds of metal are melted into steel, which is shaped into flat sheets. Workers join steel sections by heating the edges (called joints). They wear helmets and gloves for protection. Then workers check all the joints for leaks. Finally, the ship is painted and gleams in the sun. People will pay a lot of money to ride on this ship as it glides toward the open sea!",
+      keyVocab: "above, build, fall, knew, money, toward, balance, section, metal, helmet",
+      skills: "Nonfiction text features, Sequence/Steps, Key details"
+    }
+  };
+
+  const s = stories[reviewStory];
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <h2>Story Review</h2>
+      <div class="story-tabs">
+        <div class="story-tab ${reviewStory==='robot'?'active':''}" onclick="reviewStory='robot';renderReview()">Robot Inventor</div>
+        <div class="story-tab ${reviewStory==='sound'?'active':''}" onclick="reviewStory='sound';renderReview()">What's That Sound?</div>
+        <div class="story-tab ${reviewStory==='ship'?'active':''}" onclick="reviewStory='ship';renderReview()">Joy of a Ship</div>
+      </div>
+      <div class="story-info">
+        <h3>${s.title}</h3>
+        <p><span class="label">Genre:</span> ${s.genre}</p>
+        <p><span class="label">Characters:</span> ${s.characters}</p>
+        <p><span class="label">Setting:</span> ${s.setting}</p>
+        <h3>Summary</h3>
+        <p>${s.plot}</p>
+        <h3>Key Vocabulary</h3>
+        <p>${s.keyVocab}</p>
+        <h3>Skills to Remember</h3>
+        <p>${s.skills}</p>
+      </div>
+      <div style="text-align:center;margin-top:20px">
+        <button class="check-btn" onclick="speak(document.querySelector('.story-info').textContent, 0.9)">&#128266; Read Aloud</button>
+      </div>
+    </div>`;
+}
+
+// ============= INIT =============
+showSection('flashcards');
+</script>
+
+</body>
+</html>

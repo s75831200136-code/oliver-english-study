@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oliver's Grammar Review - 3 Levels</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;color:#333}
+
+  .top-bar{background:rgba(255,255,255,.12);backdrop-filter:blur(12px);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;color:#fff;position:sticky;top:0;z-index:100}
+  .top-bar h1{font-size:1.3em}
+  .top-bar .info{display:flex;gap:20px;font-weight:700;font-size:.95em}
+  #levelBadge{padding:4px 14px;border-radius:20px;font-size:.85em;font-weight:800}
+  .level-easy #levelBadge{background:#4ECDC4}
+  .level-medium #levelBadge{background:#FFEAA7;color:#333}
+  .level-hard #levelBadge{background:#FF6B6B}
+
+  /* Level Select Screen */
+  .level-select{max-width:700px;margin:60px auto;padding:0 20px;text-align:center}
+  .level-select h2{color:#fff;font-size:2em;margin-bottom:10px}
+  .level-select p{color:rgba(255,255,255,.7);margin-bottom:40px;font-size:1.1em}
+  .level-cards{display:flex;flex-direction:column;gap:20px}
+  .level-card{background:rgba(255,255,255,.95);border-radius:20px;padding:30px;cursor:pointer;transition:all .3s;text-align:left;display:flex;align-items:center;gap:20px}
+  .level-card:hover{transform:translateY(-4px);box-shadow:0 15px 40px rgba(0,0,0,.3)}
+  .level-icon{font-size:3em;min-width:70px;text-align:center}
+  .level-card h3{font-size:1.3em;margin-bottom:5px}
+  .level-card p{color:#666;font-size:.95em;margin:0}
+  .level-card .tag{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.8em;font-weight:700;margin-top:8px}
+  .tag-easy{background:#E0FFF8;color:#00897B}
+  .tag-mid{background:#FFF8E1;color:#F57F17}
+  .tag-hard{background:#FFEBEE;color:#C62828}
+
+  /* Nav */
+  .nav-bar{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;justify-content:center}
+  .nav-btn{padding:9px 16px;border:none;border-radius:22px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.88em;cursor:pointer;transition:all .3s;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.2);opacity:.8}
+  .nav-btn:hover,.nav-btn.active{opacity:1;transform:translateY(-2px)}
+  .nav-btn:nth-child(1){background:#FF6B6B}
+  .nav-btn:nth-child(2){background:#4ECDC4}
+  .nav-btn:nth-child(3){background:#45B7D1}
+  .nav-btn:nth-child(4){background:#96CEB4}
+  .nav-btn:nth-child(5){background:#DDA0DD}
+  .nav-btn:nth-child(6){background:#FF8C42}
+  .nav-btn:nth-child(7){background:#6C5CE7}
+  .nav-btn:nth-child(8){background:#A29BFE}
+
+  .game-area{max-width:850px;margin:16px auto;padding:0 16px 40px}
+  .card{background:#fff;border-radius:20px;padding:28px;box-shadow:0 10px 40px rgba(0,0,0,.15);animation:fadeIn .4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  @keyframes starPop{0%{transform:scale(0)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
+  @keyframes confetti{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(280px) rotate(720deg)}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(78,205,196,.4)}50%{box-shadow:0 0 0 12px rgba(78,205,196,0)}}
+
+  h2{color:#5B4FBE;margin-bottom:16px;font-size:1.4em}
+  .progress-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .progress-bar{flex:1;height:10px;background:#eee;border-radius:8px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#667eea,#764ba2);transition:width .4s}
+  .progress-text{font-size:.9em;font-weight:700;color:#888;white-space:nowrap}
+
+  /* Shared quiz styles */
+  .q-text{font-size:1.15em;font-weight:700;margin-bottom:18px;line-height:1.6;color:#333}
+  .q-text .blank{display:inline-block;min-width:100px;border-bottom:3px solid #667eea;text-align:center;font-weight:800;color:#5B4FBE;margin:0 4px}
+  .q-text .highlight{color:#FF6B6B;font-weight:800;text-decoration:underline}
+
+  .options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
+  .opt-btn{padding:12px 22px;border:3px solid #e0e0e0;border-radius:14px;background:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:1.05em;cursor:pointer;transition:all .25s;min-width:80px;text-align:center}
+  .opt-btn:hover{border-color:#667eea;background:#f5f3ff}
+  .opt-btn.selected{border-color:#667eea;background:#E8E4FF;color:#5B4FBE}
+  .opt-btn.correct{border-color:#4ECDC4;background:#E0FFF8;color:#00897B;animation:bounce .4s}
+  .opt-btn.wrong{border-color:#FF6B6B;background:#FFF0F0;color:#C62828;animation:shake .4s}
+  .opt-btn.disabled{pointer-events:none;opacity:.7}
+
+  .feedback{min-height:40px;font-size:1.1em;font-weight:700;text-align:center;margin:12px 0;padding:10px;border-radius:12px}
+  .feedback.correct{color:#00897B;background:#E0FFF8}
+  .feedback.wrong{color:#C62828;background:#FFF0F0}
+
+  .nav-buttons{display:flex;gap:12px;justify-content:center;margin-top:18px}
+  .action-btn{padding:12px 28px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:1.05em;cursor:pointer;color:#fff;background:#667eea;transition:all .25s}
+  .action-btn:hover{background:#5a54d4;transform:translateY(-2px)}
+  .action-btn.green{background:#4ECDC4}
+  .action-btn.red{background:#FF6B6B}
+  .action-btn.orange{background:#FF8C42}
+
+  /* Input style */
+  .text-input{font-size:1.1em;padding:12px 18px;border:3px solid #ddd;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;outline:none;transition:border-color .3s;width:100%;max-width:350px;text-align:center}
+  .text-input:focus{border-color:#667eea}
+  .text-input.correct{border-color:#4ECDC4;background:#E0FFF8}
+  .text-input.wrong{border-color:#FF6B6B;background:#FFF0F0}
+
+  /* Drag / Scramble */
+  .word-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0;min-height:50px}
+  .word-chip{padding:10px 16px;background:#E8E4FF;border-radius:10px;font-weight:700;cursor:pointer;transition:all .2s;font-size:1.05em;color:#5B4FBE;user-select:none}
+  .word-chip:hover{background:#d4cdff;transform:scale(1.04)}
+  .word-chip.used{opacity:.25;pointer-events:none}
+  .drop-zone{min-height:55px;border:3px dashed #ccc;border-radius:14px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0;transition:all .3s}
+  .drop-zone.correct{border-color:#4ECDC4;background:#E0FFF8}
+  .drop-zone.wrong{border-color:#FF6B6B;background:#FFF0F0}
+  .placed{padding:10px 16px;background:#667eea;border-radius:10px;font-weight:700;cursor:pointer;color:#fff;font-size:1.05em;transition:all .2s}
+  .placed:hover{background:#5a54d4}
+
+  /* Preposition images */
+  .prep-visual{display:flex;justify-content:center;margin:15px 0}
+  .prep-scene{width:200px;height:150px;background:#f0f0f0;border-radius:16px;position:relative;display:flex;align-items:flex-end;justify-content:center;font-size:3em;border:3px solid #ddd;overflow:hidden}
+  .prep-scene .obj{position:absolute;font-size:1.5em}
+  .prep-scene .ref{font-size:2em}
+
+  /* Final score */
+  .final{text-align:center;padding:30px}
+  .final .big{font-size:4em;animation:starPop .5s}
+  .final .score{font-size:2em;font-weight:900;color:#5B4FBE;margin:12px 0}
+  .final .msg{font-size:1.15em;color:#666}
+  .final .detail{margin-top:20px;text-align:left;background:#f8f7ff;padding:20px;border-radius:14px}
+  .final .detail h3{color:#5B4FBE;margin-bottom:10px}
+  .final .detail .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}
+  .final .detail .row:last-child{border:none}
+
+  .back-btn{position:fixed;bottom:20px;right:20px;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);border:none;color:#fff;padding:10px 20px;border-radius:30px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;z-index:99;font-size:.9em;transition:all .3s}
+  .back-btn:hover{background:rgba(255,255,255,.35)}
+
+  .speak-icon{cursor:pointer;font-size:1.2em;vertical-align:middle;margin-left:6px}
+  .speak-icon:hover{transform:scale(1.2)}
+
+  .confetti-piece{position:fixed;width:10px;height:10px;animation:confetti 1.5s ease forwards;z-index:9999;pointer-events:none}
+
+  @media(max-width:600px){
+    .level-card{flex-direction:column;text-align:center}
+    .level-icon{min-width:auto}
+    .opt-btn{padding:10px 16px;font-size:.95em;min-width:60px}
+    .nav-btn{padding:7px 12px;font-size:.8em}
+    .q-text{font-size:1.05em}
+    .top-bar h1{font-size:1.1em}
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar" id="topBar" style="display:none">
+  <h1>Oliver's Grammar Review</h1>
+  <div class="info">
+    <span id="levelBadge"></span>
+    <span>&#11088; <span id="starCount">0</span></span>
+  </div>
+</div>
+
+<div id="app"></div>
+<button class="back-btn" id="backBtn" style="display:none" onclick="goHome()">&#8592; Back to Menu</button>
+
+<script>
+// ========== GLOBALS ==========
+let level='', stars=0, section='', qIdx=0, qScore=0, qAnswered=false;
+const $ = id => document.getElementById(id);
+
+function speak(t,r=.85){const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=r;u.pitch=1.1;speechSynthesis.cancel();speechSynthesis.speak(u)}
+function addStar(n){stars+=n;$('starCount').textContent=stars;$('starCount').style.animation='none';$('starCount').offsetHeight;$('starCount').style.animation='starPop .4s'}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function showConfetti(){const c=['#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#DDA0DD','#96CEB4','#FF8C42','#667eea'];for(let i=0;i<35;i++){const e=document.createElement('div');e.className='confetti-piece';e.style.left=Math.random()*100+'vw';e.style.top='-10px';e.style.background=c[Math.floor(Math.random()*c.length)];e.style.borderRadius=Math.random()>.5?'50%':'0';e.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),2000)}}
+function pick(arr,n){return shuffle(arr).slice(0,n)}
+
+// ========== DATA ==========
+// Present Continuous
+const pcSubjects = [
+  {subj:'I',be:'am'},{subj:'He',be:'is'},{subj:'She',be:'is'},{subj:'It',be:'is'},
+  {subj:'We',be:'are'},{subj:'They',be:'are'},{subj:'You',be:'are'},
+  {subj:'The boy',be:'is'},{subj:'The children',be:'are'},{subj:'My sister',be:'is'},
+  {subj:'My parents',be:'are'},{subj:'The dog',be:'is'},{subj:'Mr. Smith',be:'is'},
+  {subj:'The students',be:'are'},{subj:'Mom and Dad',be:'are'}
+];
+const pcVerbs = [
+  {base:'drink',ing:'drinking'},{base:'eat',ing:'eating'},{base:'read',ing:'reading'},
+  {base:'play',ing:'playing'},{base:'run',ing:'running'},{base:'swim',ing:'swimming'},
+  {base:'write',ing:'writing'},{base:'sing',ing:'singing'},{base:'dance',ing:'dancing'},
+  {base:'cook',ing:'cooking'},{base:'sleep',ing:'sleeping'},{base:'walk',ing:'walking'},
+  {base:'jump',ing:'jumping'},{base:'ride',ing:'riding'},{base:'sit',ing:'sitting'},
+  {base:'draw',ing:'drawing'},{base:'mop',ing:'mopping'},{base:'sweep',ing:'sweeping'},
+  {base:'bounce',ing:'bouncing'},{base:'climb',ing:'climbing'},{base:'build',ing:'building'},
+  {base:'make',ing:'making'},{base:'take',ing:'taking'},{base:'wash',ing:'washing'},
+  {base:'cut',ing:'cutting'},{base:'paint',ing:'painting'},{base:'clean',ing:'cleaning'},
+  {base:'study',ing:'studying'},{base:'cry',ing:'crying'},{base:'fly',ing:'flying'}
+];
+const pcObjects = ['a book','a song','the floor','a cake','a picture','the dog','a ball','a letter','the dishes','a bike','a robot','a ship','homework','lunch','dinner'];
+
+function genPC(){
+  const s=pcSubjects[Math.floor(Math.random()*pcSubjects.length)];
+  const v=pcVerbs[Math.floor(Math.random()*pcVerbs.length)];
+  const o=pcObjects[Math.floor(Math.random()*pcObjects.length)];
+  return {subj:s.subj,be:s.be,base:v.base,ing:v.ing,obj:o,full:`${s.subj} ${s.be} ${v.ing} ${o}.`};
+}
+
+// Question Words
+const qWordData = [
+  {q:'___ is your name?',a:'What',opts:['Who','What','Where','When']},
+  {q:'___ is your teacher?',a:'Who',opts:['Who','What','Where','How']},
+  {q:'___ do you live?',a:'Where',opts:['Who','What','Where','When']},
+  {q:'___ is your birthday?',a:'When',opts:['Who','What','Where','When']},
+  {q:'___ are you feeling today?',a:'How',opts:['Who','What','How','When']},
+  {q:'___ is your favorite color?',a:'What',opts:['Who','What','Where','Why']},
+  {q:'___ do you go to school?',a:'How',opts:['Who','What','How','Why']},
+  {q:'___ are you late?',a:'Why',opts:['Who','What','Where','Why']},
+  {q:'___ is that boy?',a:'Who',opts:['Who','What','Where','When']},
+  {q:'___ do you eat lunch?',a:'When',opts:['Who','What','Where','When']},
+  {q:'___ is your school?',a:'Where',opts:['Who','What','Where','When']},
+  {q:'___ is in the box?',a:'What',opts:['Who','What','Where','How']},
+  {q:'___ is playing the piano?',a:'Who',opts:['Who','What','Where','Why']},
+  {q:'___ old are you?',a:'How',opts:['Who','What','How','When']},
+  {q:'___ is the baby crying?',a:'Why',opts:['Who','What','Where','Why']},
+  {q:'___ are those children?',a:'Who',opts:['Who','What','Where','When']},
+  {q:'___ time is it?',a:'What',opts:['Who','What','Where','When']},
+  {q:'___ does school start?',a:'When',opts:['Who','What','Where','When']},
+  {q:'___ many books do you have?',a:'How',opts:['Who','What','How','Why']},
+  {q:'___ is your father?',a:'Who',opts:['Who','What','Where','When']}
+];
+
+// Reflexive Pronouns
+const reflexiveData = [
+  {subj:'I',ref:'myself',sent:'I can do it by ___.'},
+  {subj:'You',ref:'yourself',sent:'You should take care of ___.'},
+  {subj:'He',ref:'himself',sent:'He hurt ___ while playing.'},
+  {subj:'She',ref:'herself',sent:'She made the cake by ___.'},
+  {subj:'It',ref:'itself',sent:'The cat cleaned ___.'},
+  {subj:'We',ref:'ourselves',sent:'We enjoyed ___ at the party.'},
+  {subj:'They',ref:'themselves',sent:'They built the house by ___.'},
+  {subj:'The boy',ref:'himself',sent:'The boy dressed ___ for school.'},
+  {subj:'The girls',ref:'themselves',sent:'The girls introduced ___.'},
+  {subj:'My sister',ref:'herself',sent:'My sister bought ___ a new dress.'},
+  {subj:'Tom and I',ref:'ourselves',sent:'Tom and I taught ___ to swim.'},
+  {subj:'The children',ref:'themselves',sent:'The children helped ___ to some food.'},
+  {subj:'Mr. Brown',ref:'himself',sent:'Mr. Brown found ___ a seat.'},
+  {subj:'The dog',ref:'itself',sent:'The dog scratched ___.'},
+  {subj:'My mom',ref:'herself',sent:'My mom cut ___ while cooking.'}
+];
+const allReflexive = ['myself','yourself','himself','herself','itself','ourselves','yourselves','themselves'];
+
+// Prepositions
+const prepData = [
+  {scene:'The cat is ___ the table.',a:'under',emoji:'🐱',ref:'🪑',pos:'under'},
+  {scene:'The bird is ___ the tree.',a:'in',emoji:'🐦',ref:'🌳',pos:'in'},
+  {scene:'The ball is ___ the box.',a:'in',emoji:'⚽',ref:'📦',pos:'in'},
+  {scene:'The lamp is ___ the table.',a:'on',emoji:'💡',ref:'🪑',pos:'on'},
+  {scene:'The picture is ___ the sofa.',a:'above',emoji:'🖼️',ref:'🛋️',pos:'above'},
+  {scene:'The dog is ___ the door.',a:'behind',emoji:'🐕',ref:'🚪',pos:'behind'},
+  {scene:'The boy is ___ the TV.',a:'in front of',emoji:'👦',ref:'📺',pos:'in front of'},
+  {scene:'The clock is ___ the wall.',a:'on',emoji:'🕐',ref:'🧱',pos:'on'},
+  {scene:'The shoes are ___ the bed.',a:'under',emoji:'👟',ref:'🛏️',pos:'under'},
+  {scene:'The apple is ___ the plate.',a:'on',emoji:'🍎',ref:'🍽️',pos:'on'},
+  {scene:'The airplane is ___ the clouds.',a:'above',emoji:'✈️',ref:'☁️',pos:'above'},
+  {scene:'The flower is ___ the two books.',a:'between',emoji:'🌸',ref:'📚',pos:'between'},
+  {scene:'The rabbit is ___ the house.',a:'behind',emoji:'🐰',ref:'🏠',pos:'behind'},
+  {scene:'The star is ___ the moon.',a:'next to',emoji:'⭐',ref:'🌙',pos:'next to'},
+  {scene:'The fish is ___ the water.',a:'in',emoji:'🐟',ref:'💧',pos:'in'}
+];
+const allPreps = ['on','in','under','above','behind','in front of','next to','between'];
+
+// Unscramble sentences (graded)
+const scrambleEasy = [
+  {words:['I','am','reading','a','book.'],correct:'I am reading a book.'},
+  {words:['She','is','playing.'],correct:'She is playing.'},
+  {words:['They','are','running.'],correct:'They are running.'},
+  {words:['He','is','eating','lunch.'],correct:'He is eating lunch.'},
+  {words:['We','are','singing','a','song.'],correct:'We are singing a song.'},
+  {words:['The','dog','is','sleeping.'],correct:'The dog is sleeping.'},
+  {words:['I','can','do','it','by','myself.'],correct:'I can do it by myself.'},
+  {words:['She','is','dancing.'],correct:'She is dancing.'},
+];
+const scrambleMed = [
+  {words:['The','children','are','playing','in','the','park.'],correct:'The children are playing in the park.'},
+  {words:['My','sister','is','cooking','dinner','by','herself.'],correct:'My sister is cooking dinner by herself.'},
+  {words:['What','are','you','doing','today?'],correct:'What are you doing today?'},
+  {words:['The','bird','is','sitting','on','the','tree.'],correct:'The bird is sitting on the tree.'},
+  {words:['He','is','building','a','robot','by','himself.'],correct:'He is building a robot by himself.'},
+  {words:['Where','is','the','cat','sleeping?'],correct:'Where is the cat sleeping?'},
+  {words:['Workers','are','building','a','big','ship.'],correct:'Workers are building a big ship.'},
+  {words:['The','students','are','studying','in','the','classroom.'],correct:'The students are studying in the classroom.'},
+];
+const scrambleHard = [
+  {words:['Why','are','the','children','running','in','the','driveway?'],correct:'Why are the children running in the driveway?'},
+  {words:['The','workers','are','checking','the','joints','by','themselves.'],correct:'The workers are checking the joints by themselves.'},
+  {words:['Takahashi','is','making','a','waterproof','robot','by','himself.'],correct:'Takahashi is making a waterproof robot by himself.'},
+  {words:['How','many','unusual','robots','did','he','invent?'],correct:'How many unusual robots did he invent?'},
+  {words:['She','bought','herself','a','new','helmet','at','the','store.'],correct:'She bought herself a new helmet at the store.'},
+  {words:['The','bird','scrambled','up','the','tallest','tree','suddenly.'],correct:'The bird scrambled up the tallest tree suddenly.'},
+  {words:['What','is','the','woodpecker','pecking','on','the','tree?'],correct:'What is the woodpecker pecking on the tree?'},
+  {words:['Two','kinds','of','metal','are','melted','into','steel.'],correct:'Two kinds of metal are melted into steel.'},
+];
+
+// Error Correction
+const errorEasy = [
+  {sent:'She are playing.',error:'are',fix:'is',explanation:'She uses "is" not "are".'},
+  {sent:'I is happy.',error:'is',fix:'am',explanation:'I uses "am" not "is".'},
+  {sent:'They is running.',error:'is',fix:'are',explanation:'They uses "are" not "is".'},
+  {sent:'He are eating.',error:'are',fix:'is',explanation:'He uses "is" not "are".'},
+  {sent:'We is singing.',error:'is',fix:'are',explanation:'We uses "are" not "is".'},
+  {sent:'The dog are sleeping.',error:'are',fix:'is',explanation:'The dog (it) uses "is".'},
+  {sent:'I can do it by herself.',error:'herself',fix:'myself',explanation:'I → myself.'},
+  {sent:'He hurt herself.',error:'herself',fix:'himself',explanation:'He → himself.'},
+];
+const errorMed = [
+  {sent:'The children is playing in the park.',error:'is',fix:'are',explanation:'The children (they) uses "are".'},
+  {sent:'She is play the piano.',error:'play',fix:'playing',explanation:'Present continuous needs verb+ing.'},
+  {sent:'He is swiming fast.',error:'swiming',fix:'swimming',explanation:'swim → swimming (double m).'},
+  {sent:'They enjoyed ourself at the party.',error:'ourself',fix:'themselves',explanation:'They → themselves.'},
+  {sent:'We taught themself to read.',error:'themself',fix:'ourselves',explanation:'We → ourselves.'},
+  {sent:'The boy dressed herself for school.',error:'herself',fix:'himself',explanation:'The boy → himself.'},
+  {sent:'My parents is cooking dinner.',error:'is',fix:'are',explanation:'My parents (they) → are.'},
+  {sent:'She is runing very fast.',error:'runing',fix:'running',explanation:'run → running (double n).'},
+];
+const errorHard = [
+  {sent:'The students is studying by theirselves.',error:'theirselves',fix:'themselves',explanation:'"theirselves" is not a word. Use "themselves".'},
+  {sent:'He is makeing a waterproof robot.',error:'makeing',fix:'making',explanation:'make → making (drop the e).'},
+  {sent:'The workers is build a ship by themself.',error:'themself',fix:'themselves',explanation:'"themself" is wrong. Use "themselves". Also "is" should be "are" and "build" should be "building".'},
+  {sent:'She buyed herself a new book.',error:'buyed',fix:'bought',explanation:'buy → bought (irregular verb).'},
+  {sent:'The cat can clean hisself.',error:'hisself',fix:'itself',explanation:'The cat → itself. "hisself" is not a word.'},
+  {sent:'Him and I are play soccer.',error:'play',fix:'playing',explanation:'Present continuous: are + playing.'},
+  {sent:'Why is the childrens crying?',error:'childrens',fix:'children',explanation:'"children" is already plural. No need for -s.'},
+  {sent:'She writed a letter by herself.',error:'writed',fix:'wrote',explanation:'write → wrote (irregular verb).'},
+];
+
+// Be Verb (is/am/are) + subject-verb agreement
+const beVerbData = [
+  {subj:'I',be:'am'},{subj:'He',be:'is'},{subj:'She',be:'is'},{subj:'It',be:'is'},
+  {subj:'We',be:'are'},{subj:'They',be:'are'},{subj:'You',be:'are'},
+  {subj:'The cat',be:'is'},{subj:'My friends',be:'are'},{subj:'This book',be:'is'},
+  {subj:'The boys',be:'are'},{subj:'My teacher',be:'is'},{subj:'Tom and Jerry',be:'are'},
+  {subj:'The water',be:'is'},{subj:'My shoes',be:'are'}
+];
+
+// Vocabulary from stories
+const storyVocab = [
+  {word:'unusual',def:'not common',sent:'Takahashi invents unusual robots.'},
+  {word:'invent',def:'to make something new',sent:'Thomas Edison invented the light bulb.'},
+  {word:'idea',def:'a thought in your mind',sent:'Takahashi had an idea.'},
+  {word:'imagination',def:'pictures you make in your mind',sent:'He used his imagination.'},
+  {word:'waterproof',def:'not allowing water through',sent:'He made the robot waterproof.'},
+  {word:'scramble',def:'to move or climb quickly',sent:'The bird scrambled up the tree.'},
+  {word:'suddenly',def:'quickly and surprisingly',sent:'Suddenly, he shouted.'},
+  {word:'balance',def:'to stay without falling',sent:'The frame can balance on blocks.'},
+  {word:'section',def:'a small part of something bigger',sent:'A worker joins each steel section.'},
+  {word:'hopeless',def:'without hope',sent:'This is hopeless! sighed Marta.'},
+  {word:'contest',def:'a game or race',sent:'He put his robots in contests.'},
+  {word:'solve',def:'to find the answer',sent:'There were many problems to solve.'},
+  {word:'company',def:'a business',sent:'Takahashi started his company.'},
+  {word:'helmet',def:'protects your head',sent:'Workers put on a helmet.'},
+  {word:'metal',def:'a hard material',sent:'Two kinds of metal are melted into steel.'},
+  {word:'driveway',def:'a short road to a house',sent:'They found Ana in the driveway.'},
+  {word:'woodpecker',def:'a bird that pecks trees',sent:'It is a woodpecker pecking for bugs.'},
+  {word:'sweep',def:'to clean with a broom',sent:'Gramps was sweeping the deck.'},
+  {word:'bounce',def:'to spring back after hitting',sent:'Ana was bouncing a ball.'},
+  {word:'soar',def:'to fly high in the air',sent:'Will his robots fly and soar?'}
+];
+
+// ========== LEVEL SELECT ==========
+function goHome(){
+  level='';section='';
+  $('topBar').style.display='none';
+  $('backBtn').style.display='none';
+  document.body.className='';
+  $('app').innerHTML=`
+    <div class="level-select">
+      <h2>Oliver's Grammar Review</h2>
+      <p>Choose your difficulty level to start practicing!</p>
+      <div class="level-cards">
+        <div class="level-card" onclick="startLevel('easy')">
+          <div class="level-icon">&#127807;</div>
+          <div>
+            <h3>Easy</h3>
+            <p>Basic be verbs, simple present continuous, question words with hints, prepositions with pictures</p>
+            <span class="tag tag-easy">Beginner Friendly</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startLevel('medium')">
+          <div class="level-icon">&#128293;</div>
+          <div>
+            <h3>Medium</h3>
+            <p>Present continuous with typing, reflexive pronouns, sentence unscramble, error correction</p>
+            <span class="tag tag-mid">Challenge Mode</span>
+          </div>
+        </div>
+        <div class="level-card" onclick="startLevel('hard')">
+          <div class="level-icon">&#128081;</div>
+          <div>
+            <h3>Hard</h3>
+            <p>Mixed grammar, tricky verb forms, complex sentences, no hints, timed challenges</p>
+            <span class="tag tag-hard">Expert Level</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function startLevel(lv){
+  level=lv;
+  document.body.className='level-'+lv;
+  $('topBar').style.display='flex';
+  $('backBtn').style.display='block';
+  $('levelBadge').textContent=lv==='easy'?'Easy':lv==='medium'?'Medium':'Hard';
+  showNav();
+}
+
+function showNav(){
+  const sections = [
+    {id:'pc',label:'Present Continuous',bg:'#FF6B6B'},
+    {id:'qw',label:'Question Words',bg:'#4ECDC4'},
+    {id:'ref',label:'Reflexive Pronouns',bg:'#45B7D1'},
+    {id:'prep',label:'Prepositions',bg:'#96CEB4'},
+    {id:'scram',label:'Unscramble',bg:'#DDA0DD'},
+    {id:'error',label:'Error Correction',bg:'#FF8C42'},
+    {id:'be',label:'Be Verbs',bg:'#6C5CE7'},
+    {id:'vocab',label:'Vocabulary',bg:'#A29BFE'}
+  ];
+  $('app').innerHTML=`
+    <div class="nav-bar">
+      ${sections.map(s=>`<button class="nav-btn" onclick="startSection('${s.id}')">${s.label}</button>`).join('')}
+    </div>
+    <div class="game-area"><div id="content"></div></div>`;
+  startSection('pc');
+}
+
+// ========== SECTION ROUTER ==========
+let questions=[], totalQ=0;
+
+function startSection(id){
+  section=id;qIdx=0;qScore=0;
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    const ids=['pc','qw','ref','prep','scram','error','be','vocab'];
+    b.classList.toggle('active',ids[i]===id);
+  });
+  const counts={easy:8,medium:10,hard:12};
+  totalQ=counts[level];
+
+  switch(id){
+    case 'pc': genPCQuestions(); break;
+    case 'qw': genQWQuestions(); break;
+    case 'ref': genRefQuestions(); break;
+    case 'prep': genPrepQuestions(); break;
+    case 'scram': genScramQuestions(); break;
+    case 'error': genErrorQuestions(); break;
+    case 'be': genBeQuestions(); break;
+    case 'vocab': genVocabQuestions(); break;
+  }
+  renderQuestion();
+}
+
+// ========== GENERATORS ==========
+function genPCQuestions(){
+  questions=[];
+  for(let i=0;i<totalQ;i++){
+    const d=genPC();
+    if(level==='easy'){
+      // Choose the correct be verb
+      questions.push({type:'pc-be',data:d,opts:shuffle(['am','is','are']),answer:d.be});
+    } else if(level==='medium'){
+      // Type the verb-ing form
+      const v=pcVerbs[Math.floor(Math.random()*pcVerbs.length)];
+      questions.push({type:'pc-ing',data:{...d,base:v.base,ing:v.ing},answer:v.ing});
+    } else {
+      // Full sentence: type be + verb-ing
+      questions.push({type:'pc-full',data:d,answer:`${d.be} ${d.ing}`});
+    }
+  }
+}
+
+function genQWQuestions(){
+  const pool=pick(qWordData,totalQ);
+  questions=pool.map(d=>{
+    if(level==='easy') return {type:'qw-choice',data:d,opts:d.opts,answer:d.a};
+    if(level==='medium') return {type:'qw-choice',data:d,opts:shuffle(['Who','What','Where','When','Why','How']),answer:d.a};
+    return {type:'qw-type',data:d,answer:d.a};
+  });
+}
+
+function genRefQuestions(){
+  const pool=pick(reflexiveData,totalQ);
+  questions=pool.map(d=>{
+    if(level==='easy'){
+      const opts=pick(allReflexive.filter(r=>r!==d.ref),2).concat(d.ref);
+      return {type:'ref-choice',data:d,opts:shuffle(opts),answer:d.ref};
+    }
+    if(level==='medium'){
+      return {type:'ref-choice',data:d,opts:shuffle([...allReflexive]),answer:d.ref};
+    }
+    return {type:'ref-type',data:d,answer:d.ref};
+  });
+}
+
+function genPrepQuestions(){
+  const pool=pick(prepData,totalQ);
+  questions=pool.map(d=>{
+    if(level==='easy'){
+      const opts=pick(allPreps.filter(p=>p!==d.a),2).concat(d.a);
+      return {type:'prep-choice',data:d,opts:shuffle(opts),answer:d.a};
+    }
+    if(level==='medium'){
+      const opts=pick(allPreps.filter(p=>p!==d.a),3).concat(d.a);
+      return {type:'prep-choice',data:d,opts:shuffle(opts),answer:d.a};
+    }
+    return {type:'prep-type',data:d,answer:d.a};
+  });
+}
+
+function genScramQuestions(){
+  const src=level==='easy'?scrambleEasy:level==='medium'?scrambleMed:scrambleHard;
+  questions=pick(src,Math.min(totalQ,src.length)).map(d=>({type:'scram',data:d,answer:d.correct}));
+}
+
+function genErrorQuestions(){
+  const src=level==='easy'?errorEasy:level==='medium'?errorMed:errorHard;
+  questions=pick(src,Math.min(totalQ,src.length)).map(d=>({type:'error',data:d,answer:d.fix}));
+}
+
+function genBeQuestions(){
+  const pool=pick(beVerbData,totalQ);
+  questions=pool.map(d=>{
+    const adj=['happy','sad','tall','kind','hungry','tired','smart','funny','brave','strong'][Math.floor(Math.random()*10)];
+    if(level==='easy') return {type:'be-choice',data:{...d,adj},opts:shuffle(['am','is','are']),answer:d.be};
+    if(level==='medium') return {type:'be-neg',data:{...d,adj},answer:`${d.be} not`};
+    return {type:'be-full',data:{...d,adj},answer:d.be};
+  });
+}
+
+function genVocabQuestions(){
+  const pool=pick(storyVocab,totalQ);
+  questions=pool.map(d=>{
+    if(level==='easy'){
+      const wrongs=pick(storyVocab.filter(v=>v.word!==d.word),2).map(v=>v.word);
+      return {type:'vocab-def',data:d,opts:shuffle([...wrongs,d.word]),answer:d.word};
+    }
+    if(level==='medium'){
+      const wrongs=pick(storyVocab.filter(v=>v.word!==d.word),3).map(v=>v.def);
+      return {type:'vocab-word',data:d,opts:shuffle([...wrongs,d.def]),answer:d.def};
+    }
+    return {type:'vocab-type',data:d,answer:d.word};
+  });
+}
+
+// ========== RENDER ==========
+function renderQuestion(){
+  if(qIdx>=questions.length){renderFinal();return}
+  const q=questions[qIdx];
+  qAnswered=false;
+  const pct=Math.round(qIdx/questions.length*100);
+
+  let html=`<div class="card">
+    <h2>${sectionTitle()}</h2>
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-text">${qIdx+1}/${questions.length} | &#11088;${qScore}</div>
+    </div>`;
+
+  switch(q.type){
+    case 'pc-be':
+      html+=`<div class="q-text">${q.data.subj} <span class="blank" id="ans"></span> ${q.data.ing} ${q.data.obj}. <span class="speak-icon" onclick="speak('${q.data.full}')">&#128266;</span></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'pc-ing':
+      html+=`<div class="q-text">${q.data.subj} ${q.data.be} <span class="blank" id="ans"></span> ${q.data.obj}.<br><small style="color:#999">Base word: <b>${q.data.base}</b></small></div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="Type the -ing form" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'pc-full':
+      html+=`<div class="q-text">${q.data.subj} <span class="blank" id="ans"></span> ${q.data.obj}.<br><small style="color:#999">Base word: <b>${q.data.base}</b> — Type: be verb + verb-ing</small></div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="e.g. is running" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'qw-choice':
+      html+=`<div class="q-text">${q.data.q.replace('___','<span class="blank" id="ans"></span>')} <span class="speak-icon" onclick="speak('${q.data.q.replace('___',q.answer)}')">&#128266;</span></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'qw-type':
+      html+=`<div class="q-text">${q.data.q.replace('___','<span class="blank" id="ans"></span>')}</div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="Type the question word" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'ref-choice':
+      html+=`<div class="q-text">${q.data.sent.replace('___','<span class="blank" id="ans"></span>')} <span class="speak-icon" onclick="speak('${q.data.sent.replace('___',q.answer)}')">&#128266;</span></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'ref-type':
+      html+=`<div class="q-text">Subject: <b>${q.data.subj}</b><br>${q.data.sent.replace('___','<span class="blank" id="ans"></span>')}</div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="Type the reflexive pronoun" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'prep-choice':
+      html+=`<div class="q-text">${q.data.scene.replace('___','<span class="blank" id="ans"></span>')}</div>
+        <div class="prep-visual"><div class="prep-scene"><span class="ref">${q.data.ref}</span><span class="obj" style="font-size:1.2em;${prepPos(q.data.pos)}">${q.data.emoji}</span></div></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'prep-type':
+      html+=`<div class="q-text">${q.data.scene.replace('___','<span class="blank" id="ans"></span>')}</div>
+        <div class="prep-visual"><div class="prep-scene"><span class="ref">${q.data.ref}</span><span class="obj" style="font-size:1.2em;${prepPos(q.data.pos)}">${q.data.emoji}</span></div></div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="Type the preposition" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'scram':
+      html+=renderScramUI(q);
+      break;
+    case 'error':
+      html+=renderErrorUI(q);
+      break;
+    case 'be-choice':
+      html+=`<div class="q-text">${q.data.subj} <span class="blank" id="ans"></span> ${q.data.adj}. <span class="speak-icon" onclick="speak('${q.data.subj} ${q.answer} ${q.data.adj}')">&#128266;</span></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'be-neg':
+      html+=`<div class="q-text">${q.data.subj} <span class="blank" id="ans"></span> ${q.data.adj}. (negative)<br><small style="color:#999">Make it negative!</small></div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="e.g. is not" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'be-full':
+      html+=`<div class="q-text">${q.data.subj} <span class="blank" id="ans"></span> ${q.data.adj}.</div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="am / is / are" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+    case 'vocab-def':
+      html+=`<div class="q-text">Which word means: "<b>${q.data.def}</b>"? <span class="speak-icon" onclick="speak('${q.data.def}')">&#128266;</span></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'vocab-word':
+      html+=`<div class="q-text">What does "<b>${q.data.word}</b>" mean? <span class="speak-icon" onclick="speak('${q.data.word}')">&#128266;</span></div>
+        <div class="options">${q.opts.map(o=>`<div class="opt-btn" onclick="checkChoice(this,'${o}','${q.answer}')">${o}</div>`).join('')}</div>`;
+      break;
+    case 'vocab-type':
+      html+=`<div class="q-text">Definition: "<b>${q.data.def}</b>"<br>Sentence: "<i>${q.data.sent.replace(q.data.word,'___')}</i>"</div>
+        <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="Type the word" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+        <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+      break;
+  }
+
+  html+=`<div class="feedback" id="feedback"></div>
+    <div class="nav-buttons"><button class="action-btn" id="nextBtn" style="display:none" onclick="qIdx++;renderQuestion()">Next &#8594;</button></div>
+  </div>`;
+
+  $('content').innerHTML=html;
+  const inp=document.getElementById('typeAns');
+  if(inp) setTimeout(()=>inp.focus(),200);
+}
+
+function prepPos(pos){
+  switch(pos){
+    case 'on': return 'top:10px;left:50%;transform:translateX(-50%)';
+    case 'under': return 'bottom:5px;left:50%;transform:translateX(-50%)';
+    case 'in': return 'top:40%;left:50%;transform:translate(-50%,-50%)';
+    case 'above': return 'top:5px;left:50%;transform:translateX(-50%)';
+    case 'behind': return 'top:30%;right:15px';
+    case 'in front of': return 'bottom:15px;left:20px';
+    case 'next to': return 'top:40%;right:10px';
+    case 'between': return 'top:40%;left:50%;transform:translateX(-50%)';
+    default: return 'top:30%;left:30%';
+  }
+}
+
+function sectionTitle(){
+  const titles={pc:'Present Continuous Tense',qw:'Question Words',ref:'Reflexive Pronouns',prep:'Prepositions',scram:'Unscramble Sentences',error:'Error Correction',be:'Be Verbs (is/am/are)',vocab:'Story Vocabulary'};
+  return titles[section]||'';
+}
+
+// Scramble UI
+let scramPlaced=[];
+function renderScramUI(q){
+  scramPlaced=[];
+  const shuffled=shuffle(q.data.words);
+  return `<div class="q-text">Put the words in the correct order:</div>
+    <div class="drop-zone" id="dropZone"></div>
+    <div class="word-pool" id="wordPool">
+      ${shuffled.map((w,i)=>`<div class="word-chip" id="wc_${i}" data-word="${w}" onclick="scramPlace(${i},'${w.replace(/'/g,"\\'")}')">${w}</div>`).join('')}
+    </div>
+    <div class="nav-buttons" style="margin-top:10px">
+      <button class="action-btn orange" onclick="scramReset()">Reset</button>
+      <button class="action-btn green" onclick="scramCheck('${q.answer.replace(/'/g,"\\'")}')">Check</button>
+    </div>`;
+}
+
+function scramPlace(i,w){
+  if(qAnswered)return;
+  document.getElementById('wc_'+i).classList.add('used');
+  scramPlaced.push({i,w});
+  const el=document.createElement('div');
+  el.className='placed';el.textContent=w;
+  el.onclick=()=>{
+    if(qAnswered)return;
+    document.getElementById('wc_'+i).classList.remove('used');
+    scramPlaced=scramPlaced.filter(p=>p.i!==i);
+    el.remove();
+  };
+  $('dropZone').appendChild(el);
+}
+
+function scramReset(){
+  if(qAnswered)return;
+  scramPlaced=[];
+  document.querySelectorAll('.word-chip').forEach(e=>e.classList.remove('used'));
+  $('dropZone').innerHTML='';
+}
+
+function scramCheck(ans){
+  if(qAnswered)return;
+  qAnswered=true;
+  const user=scramPlaced.map(p=>p.w).join(' ');
+  if(user===ans){showCorrect(ans);}
+  else{showWrong(ans);$('dropZone').classList.add('wrong');}
+}
+
+// Error UI
+function renderErrorUI(q){
+  if(level==='easy'){
+    // Click the wrong word
+    const words=q.data.sent.split(' ');
+    return `<div class="q-text">Find and click the <b>incorrect</b> word:</div>
+      <div class="options">${words.map(w=>{
+        const clean=w.replace(/[.!?]/g,'');
+        return `<div class="opt-btn" onclick="checkChoice(this,'${clean}','${q.data.error}')">${w}</div>`;
+      }).join('')}</div>
+      <div class="q-text" style="font-size:.9em;color:#999;margin-top:10px">Correct answer: ${q.data.error} → <b>${q.data.fix}</b></div>`;
+  } else {
+    // Type the correction
+    return `<div class="q-text">Fix the underlined error:<br><br>"${q.data.sent.replace(q.data.error,`<span class="highlight">${q.data.error}</span>`)}"</div>
+      <div style="text-align:center"><input class="text-input" id="typeAns" placeholder="Type the correct word" onkeydown="if(event.key==='Enter')checkTyped('${q.answer}')"><br><br>
+      <button class="action-btn" onclick="checkTyped('${q.answer}')">Check</button></div>`;
+  }
+}
+
+// ========== CHECK ANSWERS ==========
+function checkChoice(el,chosen,answer){
+  if(qAnswered)return;
+  qAnswered=true;
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.add('disabled'));
+
+  if(chosen.toLowerCase()===answer.toLowerCase()){
+    el.classList.add('correct');
+    showCorrect(answer);
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.opt-btn').forEach(b=>{
+      if(b.textContent.trim().toLowerCase()===answer.toLowerCase()) b.classList.add('correct');
+    });
+    showWrong(answer);
+  }
+}
+
+function checkTyped(answer){
+  if(qAnswered)return;
+  const inp=document.getElementById('typeAns');
+  if(!inp)return;
+  const val=inp.value.trim();
+  if(!val)return;
+  qAnswered=true;
+
+  if(val.toLowerCase()===answer.toLowerCase()){
+    inp.classList.add('correct');
+    showCorrect(answer);
+  } else {
+    inp.classList.add('wrong');
+    showWrong(answer);
+  }
+}
+
+function showCorrect(answer){
+  qScore++;
+  addStar(level==='easy'?1:level==='medium'?2:3);
+  const fb=$('feedback');
+  fb.className='feedback correct';
+  fb.textContent='Correct! Well done!';
+  if($('ans')) $('ans').textContent=answer;
+  speak('Correct!');
+  $('nextBtn').style.display='inline-block';
+}
+
+function showWrong(answer){
+  const fb=$('feedback');
+  fb.className='feedback wrong';
+  const q=questions[qIdx];
+  let extra='';
+  if(q.type==='error'&&q.data.explanation) extra=' '+q.data.explanation;
+  fb.textContent=`The answer is: ${answer}.${extra}`;
+  if($('ans')) $('ans').textContent=answer;
+  speak('The answer is '+answer);
+  $('nextBtn').style.display='inline-block';
+}
+
+// ========== FINAL SCORE ==========
+function renderFinal(){
+  showConfetti();
+  const pct=Math.round(qScore/questions.length*100);
+  const emoji=pct>=90?'&#127942;':pct>=70?'&#127775;':pct>=50?'&#11088;':'&#128170;';
+  const msg=pct>=90?'Outstanding! You really know your grammar!':pct>=70?'Great job! Keep it up!':pct>=50?'Good effort! Review and try again!':'Keep practicing! You can do it!';
+
+  $('content').innerHTML=`<div class="card final">
+    <div class="big">${emoji}</div>
+    <div class="score">${qScore} / ${questions.length} (${pct}%)</div>
+    <div class="msg">${msg}</div>
+    <div class="detail">
+      <h3>Section: ${sectionTitle()}</h3>
+      <div class="row"><span>Level</span><span>${level==='easy'?'Easy':level==='medium'?'Medium':'Hard'}</span></div>
+      <div class="row"><span>Correct</span><span>${qScore}</span></div>
+      <div class="row"><span>Incorrect</span><span>${questions.length-qScore}</span></div>
+      <div class="row"><span>Stars earned</span><span>&#11088; ${qScore*(level==='easy'?1:level==='medium'?2:3)}</span></div>
+    </div>
+    <div class="nav-buttons" style="margin-top:20px">
+      <button class="action-btn red" onclick="startSection('${section}')">Try Again</button>
+      <button class="action-btn green" onclick="showNav()">Other Topics</button>
+    </div>
+  </div>`;
+}
+
+// ========== INIT ==========
+goHome();
+</script>
+</body>
+</html>

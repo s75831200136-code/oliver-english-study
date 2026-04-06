@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oliver's English Study Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+
+  .container{max-width:600px;width:100%;text-align:center}
+
+  .logo{font-size:3.5em;margin-bottom:10px;animation:float 3s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  h1{color:#fff;font-size:2.2em;margin-bottom:6px}
+  .subtitle{color:rgba(255,255,255,.6);font-size:1.1em;margin-bottom:40px}
+
+  .cards{display:flex;flex-direction:column;gap:18px}
+
+  a{text-decoration:none}
+
+  .card{background:rgba(255,255,255,.95);border-radius:20px;padding:28px;display:flex;align-items:center;gap:20px;text-align:left;transition:all .3s;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+  .card:hover{transform:translateY(-5px);box-shadow:0 15px 45px rgba(0,0,0,.3)}
+
+  .card-icon{font-size:2.8em;min-width:65px;text-align:center}
+
+  .card h2{font-size:1.2em;margin-bottom:4px}
+  .card p{color:#666;font-size:.92em;line-height:1.4;margin:0}
+  .card .tag{display:inline-block;padding:3px 12px;border-radius:20px;font-size:.78em;font-weight:700;margin-top:8px}
+
+  .tag-vocab{background:#FFE0E0;color:#C62828}
+  .tag-grammar{background:#E0F7FA;color:#00695C}
+  .tag-speak{background:#F3E5F5;color:#6A1B9A}
+
+  .card:nth-child(1) h2{color:#FF6B6B}
+  .card:nth-child(2) h2{color:#4ECDC4}
+  .card:nth-child(3) h2{color:#9C27B0}
+
+  .footer{margin-top:40px;color:rgba(255,255,255,.3);font-size:.85em}
+
+  @media(max-width:500px){
+    h1{font-size:1.7em}
+    .card{flex-direction:column;text-align:center;padding:22px}
+    .card-icon{min-width:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">&#128218;</div>
+  <h1>Oliver's English Study Hub</h1>
+  <p class="subtitle">Interactive exam review tools - pick one to start!</p>
+
+  <div class="cards">
+    <a href="vocab.html">
+      <div class="card">
+        <div class="card-icon">&#127916;</div>
+        <div>
+          <h2>Vocabulary & Reading</h2>
+          <p>Flashcards, spelling bee, matching game, story quiz, sentence unscramble, and true/false challenges.</p>
+          <span class="tag tag-vocab">50 Words + 5 Stories</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="grammar.html">
+      <div class="card">
+        <div class="card-icon">&#128221;</div>
+        <div>
+          <h2>Grammar Review</h2>
+          <p>Present continuous, question words, reflexive pronouns, prepositions, be verbs, error correction - 3 difficulty levels.</p>
+          <span class="tag tag-grammar">Easy / Medium / Hard</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="speaking.html">
+      <div class="card">
+        <div class="card-icon">&#127908;</div>
+        <div>
+          <h2>Speaking Practice</h2>
+          <p>Talk with AI teacher Ms. Emma! Pronunciation drills, story Q&A, grammar speaking, and free talk role play.</p>
+          <span class="tag tag-speak">Use Microphone (Chrome)</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">Made with &#10084; for Oliver's exam preparation</div>
+</div>
+
+</body>
+</html>
