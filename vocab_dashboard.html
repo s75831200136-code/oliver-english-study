@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESL Vocabulary Teaching Cockpit</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Special+Elite&display=swap');
+
+:root {
+  --chalk-white: #e8e8e8;
+  --chalk-dim: #a0a0a0;
+  --chalk-faint: #666;
+  --board-dark: #1a1a1a;
+  --board-surface: #222;
+  --board-border: #3a3a3a;
+  --accent-chalk: #ccc;
+  --glow: rgba(255,255,255,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--board-dark);
+  color: var(--chalk-white);
+  font-family: 'Patrick Hand', cursive;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ===== CHALKBOARD TEXTURE ===== */
+body::before {
+  content:'';
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.003) 2px, rgba(255,255,255,0.003) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.003) 2px, rgba(255,255,255,0.003) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== HEADER ===== */
+.header {
+  position: relative;
+  text-align: center;
+  padding: 28px 20px 18px;
+  border-bottom: 2px dashed var(--chalk-faint);
+  z-index: 1;
+}
+.header h1 {
+  font-family: 'Special Elite', cursive;
+  font-size: 2.2rem;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(255,255,255,0.15);
+}
+.header .subtitle {
+  font-size: 1rem;
+  color: var(--chalk-dim);
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+/* ===== WEEK TABS ===== */
+.week-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 20px 10px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+.week-tab {
+  background: transparent;
+  border: 1.5px dashed var(--chalk-faint);
+  color: var(--chalk-dim);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1rem;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .25s;
+  letter-spacing: 0.5px;
+}
+.week-tab:hover { border-color: var(--chalk-white); color: var(--chalk-white); }
+.week-tab.active {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--chalk-white);
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+
+/* ===== MAIN LAYOUT ===== */
+.main-container {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  padding: 16px;
+  padding-right: 76px;
+  gap: 16px;
+}
+
+/* ===== SECTIONS ===== */
+.content-area { flex: 1; min-width: 0; }
+.section-title {
+  font-family: 'Special Elite', cursive;
+  font-size: 1.35rem;
+  color: var(--chalk-white);
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--chalk-faint);
+  display: flex; align-items: center; gap: 10px;
+  letter-spacing: 1px;
+}
+.section-title .icon { font-size: 1.3rem; }
+.section-title:first-child { margin-top: 0; }
+
+/* ===== 1) INTERACTIVE FLASHCARDS ===== */
+.flashcard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  perspective: 900px;
+}
+.flashcard {
+  height: 180px;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .5s;
+}
+.flashcard.flipped { transform: rotateY(180deg); }
+.flashcard .front, .flashcard .back {
+  position: absolute; top:0; left:0; width:100%; height:100%;
+  backface-visibility: hidden;
+  border: 1.5px solid var(--chalk-faint);
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 14px;
+  text-align: center;
+  background: var(--board-surface);
+}
+.flashcard .front .word {
+  font-family: 'Caveat', cursive;
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255,255,255,0.12);
+}
+.flashcard .front .pos {
+  font-size: 0.85rem;
+  color: var(--chalk-dim);
+  margin-top: 4px;
+  font-style: italic;
+}
+.flashcard .front .hint {
+  font-size: 0.7rem;
+  color: var(--chalk-faint);
+  margin-top: 12px;
+}
+.flashcard .back {
+  transform: rotateY(180deg);
+  background: #1e1e1e;
+}
+.flashcard .back .definition {
+  font-size: 1.05rem;
+  color: var(--chalk-white);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.flashcard .back .example {
+  font-size: 0.85rem;
+  color: var(--chalk-dim);
+  font-style: italic;
+  line-height: 1.3;
+}
+.flashcard .num-badge {
+  position:absolute; top:8px; left:10px;
+  font-size:0.75rem; color:var(--chalk-faint);
+  font-family:'Special Elite',cursive;
+}
+
+/* ===== 2) FORMATIVE ASSESSMENT ===== */
+.assessment-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media(max-width:900px){ .assessment-area{ grid-template-columns:1fr; } }
+
+.quiz-card {
+  background: var(--board-surface);
+  border: 1.5px solid var(--board-border);
+  border-radius: 10px;
+  padding: 18px;
+}
+.quiz-card h3 {
+  font-family:'Special Elite',cursive;
+  font-size:1.05rem;
+  margin-bottom:12px;
+  color:var(--chalk-dim);
+  letter-spacing:0.5px;
+}
+
+/* matching */
+.match-container { display:flex; gap:20px; flex-wrap:wrap; }
+.match-col { flex:1; min-width:120px; display:flex; flex-direction:column; gap:8px; }
+.match-item {
+  padding: 8px 12px;
+  border: 1.5px dashed var(--chalk-faint);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: all .2s;
+  user-select:none;
+}
+.match-item:hover { border-color:var(--chalk-white); }
+.match-item.selected { background:rgba(255,255,255,0.1); border-color:#fff; }
+.match-item.correct { border-color:#6f6; color:#6f6; background:rgba(0,255,0,0.06); }
+.match-item.wrong { border-color:#f66; color:#f66; background:rgba(255,0,0,0.06); }
+
+/* fill-blank */
+.fill-blank-q {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+.fill-blank-q input {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px dashed var(--chalk-dim);
+  color: var(--chalk-white);
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  width: 120px;
+  text-align: center;
+  outline: none;
+  padding: 2px 4px;
+  transition: border-color .2s;
+}
+.fill-blank-q input:focus { border-color: #fff; }
+.fill-blank-q input.correct { border-color:#6f6; color:#6f6; }
+.fill-blank-q input.wrong { border-color:#f66; color:#f66; }
+
+.btn-check {
+  background: transparent;
+  border: 1.5px solid var(--chalk-dim);
+  color: var(--chalk-white);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 0.95rem;
+  padding: 7px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 8px;
+}
+.btn-check:hover { border-color:#fff; background:rgba(255,255,255,0.06); }
+
+/* score area */
+.score-bar {
+  margin-top:12px;
+  padding:8px 12px;
+  border-top:1px solid var(--board-border);
+  font-size:0.9rem;
+  color:var(--chalk-dim);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.score-bar .score-num { font-size:1.1rem; color:var(--chalk-white); }
+
+/* ===== 3) INFOGRAPHIC ===== */
+.infographic-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media(max-width:900px){ .infographic-area{ grid-template-columns:1fr; } }
+
+.info-panel {
+  background: var(--board-surface);
+  border: 1.5px solid var(--board-border);
+  border-radius: 10px;
+  padding: 18px;
+}
+.info-panel h3 {
+  font-family:'Special Elite',cursive;
+  font-size:1rem;
+  margin-bottom:12px;
+  color:var(--chalk-dim);
+}
+
+/* POS donut */
+.donut-container { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+.donut-svg { width:140px; height:140px; }
+.donut-legend { display:flex; flex-direction:column; gap:6px; }
+.donut-legend-item { display:flex; align-items:center; gap:8px; font-size:0.9rem; }
+.donut-legend-dot { width:12px; height:12px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); }
+
+/* word map */
+.word-map {
+  position: relative;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.word-map svg { width:100%; height:280px; }
+.wm-center {
+  font-family:'Caveat',cursive;
+  font-size:1.2rem;
+  font-weight:700;
+  fill:var(--chalk-white);
+  text-anchor:middle;
+}
+.wm-node {
+  font-family:'Patrick Hand',cursive;
+  font-size:0.82rem;
+  fill:var(--chalk-dim);
+  text-anchor:middle;
+  cursor:default;
+}
+.wm-line { stroke:var(--chalk-faint); stroke-width:1; stroke-dasharray:4 3; }
+
+/* progress tracker */
+.progress-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.progress-label { width:80px; font-size:0.85rem; color:var(--chalk-dim); text-align:right; }
+.progress-bar-bg {
+  flex:1; height:14px; background:rgba(255,255,255,0.05);
+  border-radius:7px; border:1px solid var(--board-border); overflow:hidden;
+}
+.progress-bar-fill {
+  height:100%; border-radius:7px;
+  background: repeating-linear-gradient(135deg, var(--chalk-dim), var(--chalk-dim) 4px, var(--chalk-faint) 4px, var(--chalk-faint) 8px);
+  transition: width .6s;
+}
+.progress-val { width:36px; font-size:0.85rem; color:var(--chalk-white); }
+
+/* ===== FLOATING TOOL PANEL ===== */
+.tool-panel {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(30,30,30,0.92);
+  border: 1.5px solid var(--board-border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  backdrop-filter: blur(6px);
+}
+.tool-btn {
+  width: 44px; height: 44px;
+  border: 1.5px solid var(--chalk-faint);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chalk-dim);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  position: relative;
+  font-size: 1.2rem;
+}
+.tool-btn:hover { border-color:var(--chalk-white); color:var(--chalk-white); }
+.tool-btn.active { background:rgba(255,255,255,0.1); border-color:#fff; color:#fff; }
+.tool-btn .tooltip {
+  position:absolute; right:52px; top:50%; transform:translateY(-50%);
+  background:#111; color:var(--chalk-white); font-family:'Patrick Hand',cursive;
+  font-size:0.8rem; padding:4px 10px; border-radius:4px; white-space:nowrap;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+  border:1px solid var(--board-border);
+}
+.tool-btn:hover .tooltip { opacity:1; }
+
+/* pen sub-panel */
+.pen-options {
+  display: none;
+  position: absolute;
+  right: 52px;
+  top: 0;
+  background: rgba(30,30,30,0.95);
+  border: 1.5px solid var(--board-border);
+  border-radius: 8px;
+  padding: 8px;
+  flex-direction: column;
+  gap: 6px;
+}
+.pen-options.show { display:flex; }
+.pen-size-btn {
+  width:32px; height:32px; border-radius:50%;
+  border:1.5px solid var(--chalk-faint);
+  background:transparent;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s;
+}
+.pen-size-btn:hover { border-color:#fff; }
+.pen-size-btn.active { background:rgba(255,255,255,0.15); border-color:#fff; }
+.pen-size-btn .dot {
+  border-radius:50%; background:var(--chalk-white);
+}
+.pen-color-row { display:flex; gap:4px; }
+.pen-color-btn {
+  width:20px; height:20px; border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.3);
+  cursor:pointer; transition:all .2s;
+}
+.pen-color-btn.active { border-color:#fff; box-shadow:0 0 6px rgba(255,255,255,0.3); }
+.eraser-btn {
+  width:100%; padding:4px 8px;
+  border:1.5px solid var(--chalk-faint);
+  border-radius:4px;
+  background:transparent;
+  color:var(--chalk-dim);
+  font-family:'Patrick Hand',cursive;
+  font-size:0.8rem;
+  cursor:pointer;
+  transition:all .2s;
+}
+.eraser-btn:hover { border-color:#fff; color:#fff; }
+
+/* drawing canvas overlay */
+#drawCanvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 500;
+  pointer-events: none;
+  cursor: crosshair;
+}
+#drawCanvas.active { pointer-events: auto; }
+
+/* student mode */
+body.student-mode .teacher-only { display:none !important; }
+body.student-mode .flashcard .back .definition { filter:blur(6px); transition:filter .3s; }
+body.student-mode .flashcard.flipped .back .definition { filter:none; }
+
+/* bottom bar */
+.bottom-bar {
+  position:fixed; bottom:0; left:0; width:100%;
+  background:rgba(20,20,20,0.9);
+  border-top:1px solid var(--board-border);
+  padding:8px 20px;
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:100;
+  font-size:0.85rem;
+  color:var(--chalk-faint);
+  backdrop-filter:blur(4px);
+}
+.bottom-bar .mode-indicator {
+  padding:3px 12px;
+  border-radius:4px;
+  border:1px solid var(--chalk-faint);
+  font-size:0.8rem;
+}
+body.student-mode .mode-indicator { border-color:#6f6; color:#6f6; }
+
+/* animations */
+@keyframes chalkWrite {
+  from { opacity:0; transform:translateY(4px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.week-panel { animation: chalkWrite .35s ease-out; }
+
+/* scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--board-dark); }
+::-webkit-scrollbar-thumb { background:var(--chalk-faint); border-radius:3px; }
+body { padding-bottom: 50px; }
+</style>
+</head>
+<body>
+
+<canvas id="drawCanvas"></canvas>
+
+<div class="header">
+  <h1>ESL VOCABULARY COCKPIT</h1>
+  <div class="subtitle">Washington Bilingual Elementary School &mdash; Wonders 1.5 &mdash; Ms. Noemi</div>
+</div>
+
+<div class="week-tabs" id="weekTabs"></div>
+
+<div class="main-container">
+  <div class="content-area" id="contentArea"></div>
+</div>
+
+<!-- Floating Tool Panel -->
+<div class="tool-panel">
+  <button class="tool-btn" id="penBtn" onclick="togglePen()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+    <span class="tooltip">Draw (D)</span>
+    <div class="pen-options" id="penOptions">
+      <div style="display:flex;gap:4px;">
+        <button class="pen-size-btn active" onclick="setPenSize(2)"><span class="dot" style="width:4px;height:4px;"></span></button>
+        <button class="pen-size-btn" onclick="setPenSize(4)"><span class="dot" style="width:7px;height:7px;"></span></button>
+        <button class="pen-size-btn" onclick="setPenSize(8)"><span class="dot" style="width:11px;height:11px;"></span></button>
+      </div>
+      <div class="pen-color-row">
+        <button class="pen-color-btn active" style="background:#e8e8e8" onclick="setPenColor('#e8e8e8')"></button>
+        <button class="pen-color-btn" style="background:#ff6666" onclick="setPenColor('#ff6666')"></button>
+        <button class="pen-color-btn" style="background:#66ff66" onclick="setPenColor('#66ff66')"></button>
+        <button class="pen-color-btn" style="background:#6699ff" onclick="setPenColor('#6699ff')"></button>
+      </div>
+      <button class="eraser-btn" onclick="clearCanvas()">Clear All</button>
+    </div>
+  </button>
+  <button class="tool-btn" id="studentBtn" onclick="toggleStudentMode()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3l10 4 10-4"/><path d="M2 3v8l10 4 10-4V3"/><path d="M6 12v5c0 2 6 3 6 3s6-1 6-3v-5"/></svg>
+    <span class="tooltip">Student Mode (S)</span>
+  </button>
+  <button class="tool-btn" onclick="resetAll()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    <span class="tooltip">Reset (R)</span>
+  </button>
+  <button class="tool-btn" onclick="toggleFullscreen()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    <span class="tooltip">Fullscreen (F)</span>
+  </button>
+</div>
+
+<div class="bottom-bar">
+  <span>ESL 1 &bull; Weeks 3-7 &bull; 50 Vocabulary Words</span>
+  <span class="mode-indicator" id="modeLabel">Teacher Mode</span>
+  <span id="clockDisplay"></span>
+</div>
+
+<script>
+// ===== DATA =====
+const DATA = [
+  {
+    week: 3, title: "The Story of a Robot Inventor (I)", pages: "p. 82-95",
+    words: [
+      { w:"begin", past:"began", pos:"verb", def:"to start", ex:"He began to build a robot.", ex2:"Takahashi began to study robots." },
+      { w:"better", pos:"adjective", def:"being more than good", ex:"Let's invent a better umbrella.", ex2:"He made a better robot." },
+      { w:"guess", past:"guessed", pos:"verb", def:"to try to answer a question when you are not sure", ex:"Can you guess what this does?", ex2:"We can only guess." },
+      { w:"learn", past:"learned", pos:"verb", def:"to gain knowledge or a new skill", ex:"You will learn many new things this year.", ex2:"He took classes to learn how they move." },
+      { w:"right", pos:"adjective", def:"correct or good", ex:"This clock tells the right time.", ex2:"It did not look right to Takahashi." },
+      { w:"sure", pos:"adjective", def:"knowing something very well", ex:"She makes sure you are well.", ex2:"Takahashi is sure of one thing." },
+      { w:"idea", pos:"noun", def:"a picture or thought in your mind", ex:"It's a good idea to buy new bulbs.", ex2:"Takahashi had an idea." },
+      { w:"unusual", pos:"adjective", def:"not common", ex:"This new bike is unusual.", ex2:"Takahashi invents unusual robots." },
+      { w:"invent", past:"invented", pos:"verb", def:"to make something new", ex:"Thomas Edison invented the light bulb.", ex2:"Takahashi invents unusual robots." },
+      { w:"rope", pos:"noun", def:"a long, thick piece of string", ex:"The man climbs the rope.", ex2:"The robot climbed up a cliff with a rope." }
+    ]
+  },
+  {
+    week: 4, title: "The Story of a Robot Inventor (II)", pages: "p. 82-95",
+    words: [
+      { w:"comic book", pos:"noun", def:"a book that tells stories using pictures", ex:"My favorite comic book is about Conan.", ex2:"He read comic books about Astro Boy." },
+      { w:"imagination", pos:"noun", def:"an idea or picture you make in your mind", ex:"He is using his imagination to be a superhero.", ex2:"He used his imagination to make shapes." },
+      { w:"bend", past:"bent", pos:"verb", def:"to move something so it is no longer straight", ex:"Can you bend this metal stick?", ex2:"The robots bent their legs when they walked." },
+      { w:"contest", pos:"noun", def:"a game, a race, or a talent show", ex:"My dog got first prize in the contest!", ex2:"Takahashi began to put his robots in contests." },
+      { w:"waterproof", pos:"adjective", def:"not allowing water to go through", ex:"I wish I had a waterproof camera!", ex2:"Takahashi made the swimming robot waterproof." },
+      { w:"company", pos:"noun", def:"something set up by people to do business", ex:"My dad owns a shoe company.", ex2:"In 2003, Takahashi started his company." },
+      { w:"solve", past:"solved", pos:"verb", def:"to find the answer", ex:"She solved the problem with water pipes.", ex2:"There were many problems to solve." },
+      { w:"fin", pos:"noun", def:"a thin body part used for swimming", ex:"This fish has beautiful fins.", ex2:"He gave it arms like fins to swim faster." },
+      { w:"soar", past:"soared", pos:"verb", def:"to fly or rise in the air", ex:"An eagle soars in the sky.", ex2:"Will his robots fly and soar?" },
+      { w:"wait", past:"waited", pos:"verb", def:"to stay where you are until something happens", ex:"You should wait for your turn.", ex2:"We must wait and see." }
+    ]
+  },
+  {
+    week: 5, title: "Now, What's That Sound? (I)", pages: "p. 118-131",
+    words: [
+      { w:"early", pos:"adverb", def:"before the usual time", ex:"Morning can be quiet if you wake up early.", ex2:"It started early this morning." },
+      { w:"instead", pos:"adverb", def:"do one thing and not the other", ex:"I try to whisper instead of shouting.", ex2:"Let's find Ana instead." },
+      { w:"nothing", pos:"pronoun", def:"not anything", ex:"There is nothing in that can.", ex2:"Nothing else sounds like the woodpecker." },
+      { w:"driveway", pos:"noun", def:"a short road from the street to a house", ex:"Our car is in the driveway.", ex2:"They found Ana in the driveway." },
+      { w:"thought", base:"think", pos:"verb", def:"to have an idea about something", ex:"He thought the jet was much too loud.", ex2:"I thought it might stop, but it hasn't." },
+      { w:"scramble", past:"scrambled", pos:"verb", def:"to move or climb quickly", ex:"Goats scrambled up the rocks.", ex2:"The bird scrambled up the tree." },
+      { w:"suddenly", pos:"adverb", def:"quickly; surprisingly", ex:"The sky suddenly lit up brightly!", ex2:"Suddenly, he shouted." },
+      { w:"woodpecker", pos:"noun", def:"a bird with a strong beak that looks for bugs on trees", ex:"I see a woodpecker in the tree.", ex2:"It's a woodpecker pecking for bugs." },
+      { w:"deck", pos:"noun", def:"a floor made of wood outside of a house", ex:"We sit on our deck.", ex2:"Gramps was sweeping the deck with a broom." },
+      { w:"saw", pos:"noun", def:"a tool to cut wood", ex:"Dad's saw is sharp.", ex2:"Dad was cutting wood with his saw." }
+    ]
+  },
+  {
+    week: 6, title: "Now, What's That Sound? (II)", pages: "p. 118-131",
+    words: [
+      { w:"sound", pos:"noun", def:"something people or animals can hear", ex:"The sound outside is very loud.", ex2:"What's that sound?" },
+      { w:"garage", pos:"noun", def:"a building where cars are kept", ex:"Dad keeps his car in our garage.", ex2:"Let's check out the garage." },
+      { w:"check", past:"checked", pos:"verb", def:"to look at something to make sure it's OK", ex:"I check my bag before going to school.", ex2:"Let's check out the garage." },
+      { w:"sweep", past:"swept", pos:"verb", def:"to clean the floor with a broom", ex:"Mom asked me to sweep the floor.", ex2:"Gramps was sweeping the deck." },
+      { w:"broom", pos:"noun", def:"a thing with a long handle to clean the floor", ex:"The broom is beside the kitchen door.", ex2:"Gramps was sweeping the deck with a broom." },
+      { w:"bounce", past:"bounced", pos:"verb", def:"to throw something so it comes back", ex:"You play basketball by bouncing a ball.", ex2:"Ana was bouncing a ball." },
+      { w:"hopeless", pos:"adjective", def:"without hope", ex:"She felt hopeless after trying three times.", ex2:"This is hopeless!" },
+      { w:"crown", pos:"noun", def:"a fancy thing kings and queens wear on their heads", ex:"The queen has a beautiful crown.", ex2:"It's red, like a red crown." },
+      { w:"peck", past:"pecked", pos:"verb", def:"to tap or bite something with its beak", ex:"The bird pecks for worms on the ground.", ex2:"It's a woodpecker pecking for bugs." },
+      { w:"look", past:"looked", pos:"verb", def:"to focus your eyes on something", ex:"They all looked up to see the lanterns.", ex2:"Look at the color on its head." }
+    ]
+  },
+  {
+    week: 7, title: "The Joy of a Ship", pages: "p. 158-167",
+    words: [
+      { w:"above", pos:"preposition", def:"higher than or over something", ex:"A crane is above the building.", ex2:"The ship frame can balance on blocks up above a dock." },
+      { w:"build", past:"built", pos:"verb", def:"to make or create something", ex:"They will build a tunnel.", ex2:"What is needed to build a ship?" },
+      { w:"fall", past:"fell", pos:"verb", def:"to come down quickly", ex:"It is strong and will not fall.", ex2:"Huge cranes hoist the big parts so they do not fall." },
+      { w:"knew", base:"know", pos:"verb", def:"to understand something in the past", ex:"She knew how to make a good model.", ex2:"The workers knew it would look nice!" },
+      { w:"money", pos:"noun", def:"what we use to buy things", ex:"I put my money in a new bank.", ex2:"People will pay a lot of money to ride on this ship." },
+      { w:"toward", pos:"preposition", def:"in the direction of something", ex:"We walked toward the water.", ex2:"The ship glides toward the open sea." },
+      { w:"balance", past:"balanced", pos:"verb", def:"to stay in a place without falling", ex:"The worker can balance up high.", ex2:"The ship frame can balance on blocks." },
+      { w:"section", pos:"noun", def:"a small part of something bigger", ex:"This section is not yet finished.", ex2:"A worker joins each steel section." },
+      { w:"metal", pos:"noun", def:"a hard material used to make things", ex:"The gate is made of metal.", ex2:"Two kinds of metal are melted into steel." },
+      { w:"helmet", pos:"noun", def:"something you wear to protect your head", ex:"Wear a helmet when riding your bicycle.", ex2:"Workers put on a helmet to protect their heads." }
+    ]
+  }
+];
+
+let currentWeek = 0;
+let drawingActive = false;
+let penColor = '#e8e8e8';
+let penSize = 2;
+let isDrawing = false;
+let matchState = {};
+
+// ===== INIT =====
+function init() {
+  renderTabs();
+  renderWeek(0);
+  initCanvas();
+  updateClock();
+  setInterval(updateClock, 1000);
+  document.addEventListener('keydown', handleKeys);
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('weekTabs');
+  tabs.innerHTML = DATA.map((d, i) =>
+    `<button class="week-tab ${i===0?'active':''}" onclick="switchWeek(${i})">Week ${d.week}: ${d.title}</button>`
+  ).join('');
+}
+
+function switchWeek(idx) {
+  currentWeek = idx;
+  document.querySelectorAll('.week-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  renderWeek(idx);
+}
+
+// ===== RENDER WEEK =====
+function renderWeek(idx) {
+  const d = DATA[idx];
+  const area = document.getElementById('contentArea');
+  matchState = { selWord:null, selDef:null, matched:{}, wrongPairs:[] };
+
+  // POS stats
+  const posCount = {};
+  d.words.forEach(w => { posCount[w.pos] = (posCount[w.pos]||0)+1; });
+
+  // Shuffle for matching
+  const shuffledDefs = [...d.words].sort(() => Math.random()-0.5);
+
+  // Pick 4 for fill-blank
+  const fbWords = [...d.words].sort(() => Math.random()-0.5).slice(0, 4);
+
+  area.innerHTML = `<div class="week-panel">
+    <!-- SECTION 1: INTERACTIVE VISUALIZATION -->
+    <div class="section-title"><span class="icon">&#9998;</span> Interactive Flashcards &mdash; Click to Flip</div>
+    <div class="flashcard-grid">
+      ${d.words.map((w,i) => `
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+          <span class="num-badge">#${i+1}</span>
+          <div class="front">
+            <div class="word">${w.w}</div>
+            <div class="pos">${w.pos}${w.past ? ' ('+w.past+')' : ''}${w.base ? ' ('+w.base+')' : ''}</div>
+            <div class="hint">tap to reveal</div>
+          </div>
+          <div class="back">
+            <div class="definition">${w.def}</div>
+            <div class="example">"${w.ex}"</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- SECTION 2: FORMATIVE ASSESSMENT -->
+    <div class="section-title"><span class="icon">&#10003;</span> Formative Assessment</div>
+    <div class="assessment-area">
+      <div class="quiz-card">
+        <h3>Match Word &rarr; Definition</h3>
+        <div class="match-container">
+          <div class="match-col" id="matchWords">
+            ${d.words.map((w,i) => `<div class="match-item" data-idx="${i}" data-type="word" onclick="matchClick(this,'word',${i})">${w.w}</div>`).join('')}
+          </div>
+          <div class="match-col" id="matchDefs">
+            ${shuffledDefs.map((w,i) => {
+              const origIdx = d.words.indexOf(w);
+              return `<div class="match-item" data-idx="${origIdx}" data-type="def" onclick="matchClick(this,'def',${origIdx})">${w.def}</div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="score-bar">
+          <span>Matched</span>
+          <span class="score-num" id="matchScore">0 / ${d.words.length}</span>
+        </div>
+      </div>
+
+      <div class="quiz-card">
+        <h3>Fill in the Blank</h3>
+        ${fbWords.map((w,i) => {
+          const sentence = w.ex2 || w.ex;
+          const blank = sentence.replace(new RegExp(w.w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), `<input type="text" data-answer="${w.w.toLowerCase()}" id="fb_${idx}_${i}" placeholder="???" />`);
+          return `<div class="fill-blank-q">${i+1}. ${blank}</div>`;
+        }).join('')}
+        <button class="btn-check" onclick="checkFillBlanks(${idx})">Check Answers</button>
+        <div class="score-bar">
+          <span>Score</span>
+          <span class="score-num" id="fbScore_${idx}">&mdash;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: INFOGRAPHIC -->
+    <div class="section-title"><span class="icon">&#9673;</span> Infographic</div>
+    <div class="infographic-area">
+      <div class="info-panel">
+        <h3>Parts of Speech Breakdown</h3>
+        <div class="donut-container">
+          ${renderDonut(posCount)}
+          <div class="donut-legend">
+            ${Object.entries(posCount).map(([pos, n]) =>
+              `<div class="donut-legend-item"><span class="donut-legend-dot" style="background:${posColor(pos)}"></span>${pos}: ${n}</div>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="info-panel">
+        <h3>Word Constellation Map</h3>
+        <div class="word-map">${renderWordMap(d)}</div>
+      </div>
+      <div class="info-panel teacher-only">
+        <h3>Mastery Progress (Class Avg.)</h3>
+        ${d.words.slice(0,6).map(w => `
+          <div class="progress-row">
+            <div class="progress-label">${w.w}</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${40+Math.floor(Math.random()*55)}%"></div></div>
+            <div class="progress-val">${40+Math.floor(Math.random()*55)}%</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="info-panel">
+        <h3>Quick Stats</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
+          <div><div style="font-size:2rem;font-family:Caveat,cursive;color:#fff">${d.words.length}</div><div style="font-size:0.8rem;color:var(--chalk-dim)">Total Words</div></div>
+          <div><div style="font-size:2rem;font-family:Caveat,cursive;color:#fff">${Object.keys(posCount).length}</div><div style="font-size:0.8rem;color:var(--chalk-dim)">Parts of Speech</div></div>
+          <div><div style="font-size:2rem;font-family:Caveat,cursive;color:#fff">${d.words.filter(w=>w.past||w.base).length}</div><div style="font-size:0.8rem;color:var(--chalk-dim)">Irregular Forms</div></div>
+          <div><div style="font-size:2rem;font-family:Caveat,cursive;color:#fff">${d.words.reduce((a,w)=>a+w.w.split(' ').length,0)>10?'Yes':'No'}</div><div style="font-size:0.8rem;color:var(--chalk-dim)">Compound Words</div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===== DONUT CHART =====
+function posColor(pos) {
+  const map = { verb:'#aaa', noun:'#777', adjective:'#ccc', adverb:'#555', pronoun:'#999', preposition:'#bbb' };
+  return map[pos] || '#888';
+}
+function renderDonut(posCount) {
+  const total = Object.values(posCount).reduce((a,b)=>a+b,0);
+  let cum = 0;
+  const segs = Object.entries(posCount).map(([pos, n]) => {
+    const pct = n / total;
+    const start = cum;
+    cum += pct;
+    return { pos, pct, start, color: posColor(pos) };
+  });
+  const r = 52, cx = 70, cy = 70;
+  const paths = segs.map(s => {
+    const a1 = Math.PI*2*s.start - Math.PI/2;
+    const a2 = Math.PI*2*(s.start+s.pct) - Math.PI/2;
+    const large = s.pct > 0.5 ? 1 : 0;
+    const x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+    const x2 = cx + r*Math.cos(a2), y2 = cy + r*Math.sin(a2);
+    return `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z" fill="${s.color}" stroke="#1a1a1a" stroke-width="1.5"/>`;
+  }).join('');
+  return `<svg class="donut-svg" viewBox="0 0 140 140">${paths}<circle cx="${cx}" cy="${cy}" r="28" fill="#222"/><text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#aaa" font-size="11" font-family="Special Elite">${total} words</text></svg>`;
+}
+
+// ===== WORD MAP =====
+function renderWordMap(d) {
+  const cx = 250, cy = 140, r = 110;
+  const nodes = d.words.map((w, i) => {
+    const angle = (Math.PI * 2 * i / d.words.length) - Math.PI / 2;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), w: w.w };
+  });
+  const lines = nodes.map(n => `<line class="wm-line" x1="${cx}" y1="${cy}" x2="${n.x}" y2="${n.y}"/>`).join('');
+  const texts = nodes.map(n => `<text class="wm-node" x="${n.x}" y="${n.y+4}">${n.w}</text>`).join('');
+  return `<svg viewBox="0 0 500 280">${lines}<circle cx="${cx}" cy="${cy}" r="30" fill="none" stroke="var(--chalk-faint)" stroke-dasharray="4 3"/><text class="wm-center" x="${cx}" y="${cy+5}">Week ${d.week}</text>${texts}</svg>`;
+}
+
+// ===== MATCHING GAME =====
+function matchClick(el, type, idx) {
+  if (matchState.matched[idx]) return;
+
+  // Deselect same type
+  document.querySelectorAll(`.match-item[data-type="${type}"].selected`).forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+
+  if (type === 'word') matchState.selWord = idx;
+  else matchState.selDef = idx;
+
+  if (matchState.selWord !== null && matchState.selDef !== null) {
+    if (matchState.selWord === matchState.selDef) {
+      // correct
+      document.querySelectorAll(`.match-item.selected`).forEach(e => { e.classList.remove('selected'); e.classList.add('correct'); });
+      matchState.matched[matchState.selWord] = true;
+      document.getElementById('matchScore').textContent = `${Object.keys(matchState.matched).length} / ${DATA[currentWeek].words.length}`;
+    } else {
+      document.querySelectorAll(`.match-item.selected`).forEach(e => { e.classList.remove('selected'); e.classList.add('wrong'); });
+      setTimeout(() => { document.querySelectorAll('.match-item.wrong').forEach(e => e.classList.remove('wrong')); }, 600);
+    }
+    matchState.selWord = null;
+    matchState.selDef = null;
+  }
+}
+
+// ===== FILL BLANKS =====
+function checkFillBlanks(weekIdx) {
+  let correct = 0, total = 0;
+  document.querySelectorAll(`[id^="fb_${weekIdx}_"]`).forEach(input => {
+    total++;
+    const answer = input.dataset.answer;
+    const val = input.value.trim().toLowerCase();
+    if (val === answer) { input.classList.add('correct'); input.classList.remove('wrong'); correct++; }
+    else { input.classList.add('wrong'); input.classList.remove('correct'); }
+  });
+  document.getElementById(`fbScore_${weekIdx}`).textContent = `${correct} / ${total}`;
+}
+
+// ===== DRAWING CANVAS =====
+function initCanvas() {
+  const canvas = document.getElementById('drawCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  window.addEventListener('resize', () => {
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.putImageData(imgData, 0, 0);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  });
+
+  canvas.addEventListener('mousedown', e => { if (!drawingActive) return; isDrawing = true; ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY); });
+  canvas.addEventListener('mousemove', e => { if (!isDrawing) return; ctx.strokeStyle = penColor; ctx.lineWidth = penSize; ctx.lineTo(e.clientX, e.clientY); ctx.stroke(); });
+  canvas.addEventListener('mouseup', () => isDrawing = false);
+  canvas.addEventListener('mouseleave', () => isDrawing = false);
+
+  canvas.addEventListener('touchstart', e => { if (!drawingActive) return; e.preventDefault(); isDrawing = true; const t = e.touches[0]; ctx.beginPath(); ctx.moveTo(t.clientX, t.clientY); }, {passive:false});
+  canvas.addEventListener('touchmove', e => { if (!isDrawing) return; e.preventDefault(); const t = e.touches[0]; ctx.strokeStyle = penColor; ctx.lineWidth = penSize; ctx.lineTo(t.clientX, t.clientY); ctx.stroke(); }, {passive:false});
+  canvas.addEventListener('touchend', () => isDrawing = false);
+}
+
+function togglePen() {
+  drawingActive = !drawingActive;
+  document.getElementById('drawCanvas').classList.toggle('active', drawingActive);
+  document.getElementById('penBtn').classList.toggle('active', drawingActive);
+  document.getElementById('penOptions').classList.toggle('show', drawingActive);
+}
+function setPenSize(s) {
+  penSize = s;
+  document.querySelectorAll('.pen-size-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+function setPenColor(c) {
+  penColor = c;
+  document.querySelectorAll('.pen-color-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+function clearCanvas() {
+  const canvas = document.getElementById('drawCanvas');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ===== STUDENT MODE =====
+function toggleStudentMode() {
+  document.body.classList.toggle('student-mode');
+  const isStudent = document.body.classList.contains('student-mode');
+  document.getElementById('studentBtn').classList.toggle('active', isStudent);
+  document.getElementById('modeLabel').textContent = isStudent ? 'Student Mode' : 'Teacher Mode';
+}
+
+// ===== RESET =====
+function resetAll() {
+  clearCanvas();
+  renderWeek(currentWeek);
+}
+
+// ===== FULLSCREEN =====
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+function handleKeys(e) {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'd' || e.key === 'D') togglePen();
+  if (e.key === 's' || e.key === 'S') toggleStudentMode();
+  if (e.key === 'r' || e.key === 'R') resetAll();
+  if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+  if (e.key === 'ArrowRight' && currentWeek < DATA.length-1) switchWeek(currentWeek+1);
+  if (e.key === 'ArrowLeft' && currentWeek > 0) switchWeek(currentWeek-1);
+}
+
+// ===== CLOCK =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+}
+
+init();
+</script>
+</body>
+</html>

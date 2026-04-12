@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phonics Fun Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Comic+Neue:wght@400;700&family=Fredoka:wght@400;500;600;700&display=swap');
+
+:root {
+  --pink: #ff8fab;
+  --purple: #c9b1ff;
+  --blue: #a0d2ff;
+  --green: #b5ead7;
+  --yellow: #fff3b0;
+  --orange: #ffc89a;
+  --bg: #fdf6ff;
+  --card: #ffffff;
+  --text: #4a3f55;
+  --text-light: #8a7fa0;
+  --shadow: 0 4px 20px rgba(100,60,120,0.08);
+  --radius: 18px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Comic Neue', 'Fredoka', cursive;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* BG deco */
+body::before {
+  content:'';
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255,143,171,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(160,210,255,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(201,177,255,0.05) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+/* ===== HEADER ===== */
+.header {
+  position:relative; z-index:1;
+  text-align:center;
+  padding:28px 20px 16px;
+  background: linear-gradient(135deg, #ffe0ec, #e8d5ff, #d5eeff);
+  border-bottom: 3px solid rgba(255,255,255,0.6);
+}
+.header h1 {
+  font-family:'Baloo 2',cursive;
+  font-size:2.4rem;
+  font-weight:800;
+  background: linear-gradient(135deg, #e056a0, #8b5cf6, #3b82f6);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  letter-spacing:1px;
+}
+.header .subtitle {
+  font-size:1rem;
+  color:#8a6aaa;
+  margin-top:2px;
+}
+.header .deco { font-size:1.6rem; }
+
+/* ===== TABS ===== */
+.tabs {
+  display:flex; justify-content:center; gap:8px;
+  padding:14px 16px 8px;
+  flex-wrap:wrap;
+  position:relative; z-index:2;
+}
+.tab-btn {
+  border:2.5px solid transparent;
+  padding:9px 20px;
+  border-radius:40px;
+  font-family:'Fredoka',cursive;
+  font-size:1rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .25s;
+  display:flex; align-items:center; gap:6px;
+}
+.tab-btn.t0 { background:#ffe0ec; color:#c0507a; }
+.tab-btn.t1 { background:#e0d5ff; color:#7c5cbf; }
+.tab-btn.t2 { background:#d5eeff; color:#4a8abf; }
+.tab-btn.t3 { background:#d5f5e3; color:#3a8a5a; }
+.tab-btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+.tab-btn.active { border-color:var(--text); transform:scale(1.05); box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+
+/* ===== MAIN ===== */
+.main { padding:16px; padding-right:80px; position:relative; z-index:1; }
+
+/* ===== SECTION TITLES ===== */
+.sec-title {
+  font-family:'Baloo 2',cursive;
+  font-size:1.4rem;
+  font-weight:700;
+  margin:24px 0 12px;
+  display:flex; align-items:center; gap:10px;
+  color:var(--text);
+}
+.sec-title .emoji { font-size:1.5rem; }
+.sec-title:first-child { margin-top:0; }
+
+/* ===== CARD ===== */
+.card {
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px;
+  margin-bottom:16px;
+  border:2px solid rgba(200,180,220,0.15);
+  transition:box-shadow .2s;
+}
+.card:hover { box-shadow:0 6px 28px rgba(100,60,120,0.12); }
+.card h3 {
+  font-family:'Fredoka',cursive;
+  font-size:1.1rem;
+  font-weight:600;
+  margin-bottom:14px;
+  color:var(--text-light);
+}
+
+/* ===== FLASHCARD GRID ===== */
+.fc-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;
+  perspective:800px;
+}
+.fc {
+  height:130px;
+  cursor:pointer;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .45s;
+}
+.fc.flipped { transform:rotateY(180deg); }
+.fc .front,.fc .back {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  backface-visibility:hidden;
+  border-radius:14px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:10px; text-align:center;
+}
+.fc .front {
+  border:2.5px dashed var(--purple);
+  background:linear-gradient(135deg,#f8f0ff,#fff);
+}
+.fc .front .word {
+  font-family:'Baloo 2',cursive;
+  font-size:1.5rem;
+  font-weight:700;
+  color:#7c5cbf;
+}
+.fc .front .blend-highlight {
+  font-size:1.6rem;
+  color:#e056a0;
+  font-weight:800;
+}
+.fc .front .tap-hint {
+  font-size:0.65rem;
+  color:#bbb;
+  margin-top:8px;
+}
+.fc .back {
+  transform:rotateY(180deg);
+  border:2.5px solid var(--green);
+  background:linear-gradient(135deg,#f0fff5,#fff);
+}
+.fc .back .info {
+  font-size:0.95rem;
+  color:var(--text);
+  line-height:1.4;
+}
+.fc .back .blend-tag {
+  display:inline-block;
+  background:var(--yellow);
+  padding:2px 10px;
+  border-radius:20px;
+  font-size:0.8rem;
+  font-weight:600;
+  margin-top:6px;
+}
+
+/* ===== QUIZ AREA ===== */
+.quiz-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+@media(max-width:900px){ .quiz-grid{grid-template-columns:1fr;} }
+
+.q-item {
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#fdf6ff,#fff);
+  border:2px solid rgba(200,180,220,0.2);
+}
+.q-item .q-num {
+  display:inline-flex;
+  align-items:center; justify-content:center;
+  width:28px; height:28px;
+  border-radius:50%;
+  font-family:'Fredoka',cursive;
+  font-weight:700;
+  font-size:0.9rem;
+  color:#fff;
+  margin-bottom:8px;
+}
+.q-item .q-text {
+  font-size:1rem;
+  line-height:1.5;
+  margin-bottom:10px;
+}
+.q-item .q-options { display:flex; flex-wrap:wrap; gap:8px; }
+.q-opt {
+  padding:6px 16px;
+  border:2px solid #ddd;
+  border-radius:30px;
+  cursor:pointer;
+  font-family:'Comic Neue',cursive;
+  font-size:0.95rem;
+  font-weight:700;
+  transition:all .2s;
+  background:#fff;
+  user-select:none;
+}
+.q-opt:hover { border-color:var(--purple); background:#f8f0ff; }
+.q-opt.selected { border-color:#8b5cf6; background:#ede5ff; color:#6d28d9; }
+.q-opt.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+.q-opt.wrong { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+
+/* fill blank in quiz */
+.q-input {
+  border:none;
+  border-bottom:2.5px dashed var(--purple);
+  background:transparent;
+  font-family:'Comic Neue',cursive;
+  font-size:1.1rem;
+  font-weight:700;
+  width:100px;
+  text-align:center;
+  outline:none;
+  color:var(--text);
+  padding:2px 4px;
+  transition:border-color .2s;
+}
+.q-input:focus { border-color:#e056a0; }
+.q-input.correct { border-color:#22c55e; color:#166534; }
+.q-input.wrong { border-color:#ef4444; color:#991b1b; }
+
+.btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 22px;
+  border:none;
+  border-radius:30px;
+  font-family:'Fredoka',cursive;
+  font-size:0.95rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  color:#fff;
+}
+.btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.12); }
+.btn-pink { background:linear-gradient(135deg,#f472b6,#e056a0); }
+.btn-purple { background:linear-gradient(135deg,#a78bfa,#7c3aed); }
+.btn-blue { background:linear-gradient(135deg,#60a5fa,#3b82f6); }
+.btn-green { background:linear-gradient(135deg,#4ade80,#22c55e); }
+
+.score-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:12px;
+  padding-top:10px;
+  border-top:2px dashed rgba(200,180,220,0.2);
+  font-family:'Fredoka',cursive;
+}
+.score-num {
+  font-size:1.2rem;
+  font-weight:700;
+  color:#7c5cbf;
+}
+
+/* ===== VISUALIZATION AREA ===== */
+.viz-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+@media(max-width:900px){ .viz-grid{grid-template-columns:1fr;} }
+
+.bubble-container {
+  display:flex; flex-wrap:wrap; gap:10px;
+  justify-content:center;
+  padding:10px;
+}
+.bubble {
+  display:flex; align-items:center; justify-content:center;
+  width:70px; height:70px;
+  border-radius:50%;
+  font-family:'Baloo 2',cursive;
+  font-weight:700;
+  font-size:1rem;
+  color:#fff;
+  cursor:pointer;
+  transition:all .25s;
+  text-shadow:0 1px 3px rgba(0,0,0,0.2);
+  position:relative;
+}
+.bubble:hover { transform:scale(1.15); }
+.bubble.popped { transform:scale(0.8); opacity:0.5; }
+.bubble .bubble-word {
+  position:absolute; bottom:-22px; left:50%; transform:translateX(-50%);
+  font-size:0.7rem; color:var(--text-light); white-space:nowrap;
+  font-family:'Comic Neue',cursive;
+  opacity:0; transition:opacity .2s;
+}
+.bubble:hover .bubble-word { opacity:1; }
+
+/* word family houses */
+.house-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.house {
+  background:#fff;
+  border:2.5px solid;
+  border-radius:0 0 14px 14px;
+  padding:10px 14px 12px;
+  min-width:100px;
+  text-align:center;
+  position:relative;
+}
+.house::before {
+  content:'';
+  position:absolute; top:-20px; left:-2.5px; right:-2.5px;
+  height:22px;
+  background:inherit;
+  border:2.5px solid;
+  border-color:inherit;
+  border-bottom:none;
+  clip-path:polygon(50% 0%,0% 100%,100% 100%);
+}
+.house .roof-label {
+  position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+  font-family:'Baloo 2',cursive;
+  font-weight:700;
+  font-size:0.85rem;
+  color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,0.3);
+  z-index:1;
+}
+.house .words {
+  margin-top:4px;
+  font-size:0.85rem;
+  line-height:1.6;
+  color:var(--text);
+}
+
+/* drag & drop matching */
+.match-zone {
+  display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;
+}
+.match-col {
+  flex:1; min-width:120px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.match-pill {
+  padding:8px 14px;
+  border-radius:30px;
+  text-align:center;
+  font-weight:700;
+  font-size:0.95rem;
+  cursor:pointer;
+  transition:all .2s;
+  user-select:none;
+  border:2.5px solid transparent;
+}
+.match-pill.word-pill { background:#ede5ff; color:#6d28d9; border-color:#c9b1ff; }
+.match-pill.def-pill { background:#e0f2fe; color:#0369a1; border-color:#a0d2ff; }
+.match-pill.selected { transform:scale(1.05); box-shadow:0 3px 12px rgba(0,0,0,0.1); }
+.match-pill.correct { background:#dcfce7; border-color:#22c55e; color:#166534; }
+.match-pill.wrong { background:#fee2e2; border-color:#ef4444; color:#991b1b; }
+
+/* ===== FLOATING TOOL PANEL ===== */
+.tool-panel {
+  position:fixed;
+  right:12px; top:50%; transform:translateY(-50%);
+  z-index:1000;
+  display:flex; flex-direction:column; gap:6px;
+  background:rgba(255,255,255,0.92);
+  border:2px solid rgba(200,180,220,0.3);
+  border-radius:20px;
+  padding:10px 8px;
+  box-shadow:0 8px 30px rgba(100,60,120,0.12);
+  backdrop-filter:blur(8px);
+}
+.tool-btn {
+  width:46px; height:46px;
+  border:2px solid rgba(200,180,220,0.3);
+  border-radius:14px;
+  background:transparent;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s;
+  position:relative;
+  font-size:1.3rem;
+  color:var(--text-light);
+}
+.tool-btn:hover { border-color:var(--purple); color:var(--text); background:#f8f0ff; }
+.tool-btn.active { background:#ede5ff; border-color:#8b5cf6; color:#6d28d9; }
+.tool-btn .tip {
+  position:absolute; right:54px; top:50%; transform:translateY(-50%);
+  background:#333; color:#fff; font-family:'Comic Neue',cursive;
+  font-size:0.75rem; padding:4px 10px; border-radius:6px;
+  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.tool-btn:hover .tip { opacity:1; }
+
+/* color palette sub-panel */
+.color-palette {
+  display:none;
+  position:absolute;
+  right:54px; top:0;
+  background:#fff;
+  border:2px solid rgba(200,180,220,0.3);
+  border-radius:14px;
+  padding:8px;
+  box-shadow:var(--shadow);
+  flex-direction:column; gap:6px;
+}
+.color-palette.show { display:flex; }
+.color-row { display:flex; gap:5px; }
+.color-dot {
+  width:24px; height:24px; border-radius:50%;
+  border:2px solid rgba(0,0,0,0.1);
+  cursor:pointer;
+  transition:all .15s;
+}
+.color-dot:hover { transform:scale(1.2); }
+.color-dot.active { border-color:#333; box-shadow:0 0 0 2px #fff, 0 0 0 4px #333; }
+.size-row { display:flex; gap:5px; align-items:center; }
+.size-dot {
+  border-radius:50%; background:#555;
+  cursor:pointer; transition:all .15s;
+  border:2px solid transparent;
+}
+.size-dot:hover { border-color:#8b5cf6; }
+.size-dot.active { border-color:#333; }
+.palette-clear {
+  background:transparent;
+  border:1.5px solid #ddd;
+  border-radius:6px;
+  padding:3px 8px;
+  font-size:0.7rem;
+  font-family:'Comic Neue',cursive;
+  cursor:pointer;
+  color:var(--text-light);
+  transition:all .15s;
+}
+.palette-clear:hover { border-color:#ef4444; color:#ef4444; }
+
+/* drawing overlay */
+#drawCanvas {
+  position:fixed; top:0; left:0;
+  width:100%; height:100%;
+  z-index:500;
+  pointer-events:none;
+}
+#drawCanvas.active { pointer-events:auto; cursor:crosshair; }
+
+/* ===== BOTTOM BAR ===== */
+.bottom-bar {
+  position:fixed; bottom:0; left:0; width:100%;
+  background:rgba(255,255,255,0.9);
+  border-top:2px solid rgba(200,180,220,0.2);
+  padding:8px 20px;
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:100;
+  font-size:0.85rem;
+  color:var(--text-light);
+  backdrop-filter:blur(6px);
+}
+
+/* animation */
+@keyframes popIn { from{opacity:0;transform:scale(0.9);} to{opacity:1;transform:scale(1);} }
+.week-panel { animation:popIn .3s ease-out; }
+
+body { padding-bottom:50px; }
+
+/* sparkle decorations */
+.sparkle {
+  position:absolute;
+  font-size:1.2rem;
+  opacity:0.3;
+  pointer-events:none;
+  animation:twinkle 2s infinite;
+}
+@keyframes twinkle {
+  0%,100%{opacity:0.2;transform:scale(1);}
+  50%{opacity:0.5;transform:scale(1.2);}
+}
+</style>
+</head>
+<body>
+
+<canvas id="drawCanvas"></canvas>
+
+<div class="header">
+  <div class="deco">&#11088; &#127912; &#128218;</div>
+  <h1>Phonics Fun Dashboard</h1>
+  <div class="subtitle">Washington Elementary &bull; ESL 1 &bull; Let's Learn Sounds!</div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="main" id="mainContent"></div>
+
+<!-- FLOATING TOOL PANEL -->
+<div class="tool-panel">
+  <button class="tool-btn" id="penBtn" onclick="togglePen()">
+    &#9999;&#65039;
+    <span class="tip">Draw (D)</span>
+    <div class="color-palette" id="colorPalette">
+      <div class="color-row">
+        <div class="color-dot active" style="background:#333" onclick="setColor('#333')"></div>
+        <div class="color-dot" style="background:#ef4444" onclick="setColor('#ef4444')"></div>
+        <div class="color-dot" style="background:#f97316" onclick="setColor('#f97316')"></div>
+        <div class="color-dot" style="background:#eab308" onclick="setColor('#eab308')"></div>
+      </div>
+      <div class="color-row">
+        <div class="color-dot" style="background:#22c55e" onclick="setColor('#22c55e')"></div>
+        <div class="color-dot" style="background:#3b82f6" onclick="setColor('#3b82f6')"></div>
+        <div class="color-dot" style="background:#8b5cf6" onclick="setColor('#8b5cf6')"></div>
+        <div class="color-dot" style="background:#ec4899" onclick="setColor('#ec4899')"></div>
+      </div>
+      <div class="size-row">
+        <div class="size-dot active" style="width:10px;height:10px;" onclick="setSize(2)"></div>
+        <div class="size-dot" style="width:14px;height:14px;" onclick="setSize(4)"></div>
+        <div class="size-dot" style="width:20px;height:20px;" onclick="setSize(8)"></div>
+      </div>
+      <button class="palette-clear" onclick="clearDraw()">Clear All</button>
+    </div>
+  </button>
+  <button class="tool-btn" id="eraserBtn" onclick="toggleEraser()">
+    &#128999;
+    <span class="tip">Eraser (E)</span>
+  </button>
+  <button class="tool-btn" onclick="resetQuiz()">
+    &#128260;
+    <span class="tip">Reset (R)</span>
+  </button>
+  <button class="tool-btn" onclick="toggleFS()">
+    &#128250;
+    <span class="tip">Fullscreen (F)</span>
+  </button>
+</div>
+
+<div class="bottom-bar">
+  <span>&#127891; ESL 1 Phonics &bull; Weeks 3-8 &bull; Exam Prep</span>
+  <span id="clock"></span>
+</div>
+
+<script>
+// ============ DATA ============
+const TOPICS = [
+  {
+    id:0,
+    label:"Initial Blends",
+    emoji:"&#127912;",
+    tabClass:"t0",
+    color:"#e056a0",
+    blends:["bl","cl","fl","gl","pl","sl","br","cr","dr","fr","gr","pr","tr","sc","sk","sm","sn","sp","st","sw"],
+    words:[
+      {w:"globe",b:"gl"},{w:"drum",b:"dr"},{w:"flute",b:"fl"},{w:"scare",b:"sc"},{w:"skunk",b:"sk"},
+      {w:"clown",b:"cl"},{w:"swing",b:"sw"},{w:"plug",b:"pl"},{w:"tray",b:"tr"},{w:"smoke",b:"sm"},
+      {w:"snap",b:"sn"},{w:"crow",b:"cr"},{w:"snail",b:"sn"},{w:"bride",b:"br"},{w:"flag",b:"fl"},
+      {w:"block",b:"bl"},{w:"spoon",b:"sp"},{w:"crown",b:"cr"},{w:"store",b:"st"},{w:"sled",b:"sl"},
+      {w:"prize",b:"pr"},{w:"frame",b:"fr"},{w:"steps",b:"st"},{w:"glass",b:"gl"},{w:"sleep",b:"sl"}
+    ],
+    quiz:[
+      {q:"Our class got the (___) from the singing contest.",opts:["prince","bridge","prize"],ans:"prize"},
+      {q:"He gave me a picture (___) as a Christmas gift.",opts:["frame","flame","clam"],ans:"frame"},
+      {q:"People (___) out the candles after they make wishes.",opts:["club","clip","blow"],ans:"blow"},
+      {q:"We have to climb some (___) to the front door.",opts:["stage","steps","square"],ans:"steps"},
+      {q:"That pink ___ looks great on you.",type:"fill",ans:"dress"}
+    ]
+  },
+  {
+    id:1,
+    label:"Final Blends",
+    emoji:"&#127926;",
+    tabClass:"t1",
+    color:"#7c5cbf",
+    blends:["st","sk","mp","nt","nk","nd","lt","lf","ft"],
+    words:[
+      {w:"chest",b:"st"},{w:"lamp",b:"mp"},{w:"cast",b:"st"},{w:"bank",b:"nk"},{w:"skunk",b:"nk"},
+      {w:"nest",b:"st"},{w:"stamp",b:"mp"},{w:"belt",b:"lt"},{w:"mask",b:"sk"},{w:"tent",b:"nt"},
+      {w:"vest",b:"st"},{w:"plant",b:"nt"},{w:"paint",b:"nt"},{w:"melt",b:"lt"},{w:"golf",b:"lf"},
+      {w:"wind",b:"nd"},{w:"fist",b:"st"},{w:"roast",b:"st"},{w:"elf",b:"lf"},{w:"shelf",b:"lf"},
+      {w:"lift",b:"ft"},{w:"raft",b:"ft"},{w:"sink",b:"nk"},{w:"pump",b:"mp"},{w:"wilt",b:"lt"},
+      {w:"tusk",b:"sk"},{w:"stump",b:"mp"},{w:"crust",b:"st"},{w:"band",b:"nd"},{w:"link",b:"nk"},
+      {w:"wolf",b:"lf"},{w:"quilt",b:"lt"},{w:"pond",b:"nd"},{w:"hand",b:"nd"},{w:"gift",b:"ft"}
+    ],
+    quiz:[
+      {q:"The elephant has long ___s.",type:"fill",ans:"tusk"},
+      {q:"People save their money in the ___.",type:"fill",ans:"bank"},
+      {q:"Camping is fun. The children like to play in their ___s.",type:"fill",ans:"tent"},
+      {q:"Without water, flowers will ___.",type:"fill",ans:"wilt"},
+      {q:"The man thumped the wall with his ___ angrily.",type:"fill",ans:"fist"}
+    ]
+  },
+  {
+    id:2,
+    label:"Silent Consonants",
+    emoji:"&#129296;",
+    tabClass:"t2",
+    color:"#3b82f6",
+    blends:["kn","wr","ck","gh"],
+    words:[
+      {w:"knife",b:"kn"},{w:"knit",b:"kn"},{w:"knee",b:"kn"},{w:"knight",b:"kn"},{w:"knock",b:"kn"},
+      {w:"knot",b:"kn"},{w:"know",b:"kn"},{w:"kneel",b:"kn"},
+      {w:"wrap",b:"wr"},{w:"wrist",b:"wr"},{w:"wreath",b:"wr"},{w:"write",b:"wr"},{w:"wrench",b:"wr"},{w:"wrong",b:"wr"},
+      {w:"pack",b:"ck"},{w:"tack",b:"ck"},{w:"dock",b:"ck"},{w:"brick",b:"ck"},{w:"clock",b:"ck"},
+      {w:"pocket",b:"ck"},{w:"snack",b:"ck"},{w:"trick",b:"ck"},{w:"duck",b:"ck"},{w:"jacket",b:"ck"},{w:"rocket",b:"ck"},
+      {w:"tight",b:"gh"},{w:"right",b:"gh"},{w:"night",b:"gh"},{w:"high",b:"gh"},{w:"eight",b:"gh"},
+      {w:"light",b:"gh"},{w:"fight",b:"gh"},{w:"bright",b:"gh"},{w:"sight",b:"gh"}
+    ],
+    quiz:[
+      {q:"Which word does NOT have a silent consonant?",opts:["knight","snack","wrong","rock"],ans:"rock"},
+      {q:"My grandma ___s a scarf for me every winter.",type:"fill",ans:"knit"},
+      {q:"I hear a ___ at the door. Someone is at the door.",type:"fill",ans:"knock"},
+      {q:"That girl's hair is ___ and straight.",type:"fill",ans:"black"},
+      {q:"If all the answers are ___, you will get 100 on the test.",type:"fill",ans:"right"}
+    ]
+  },
+  {
+    id:3,
+    label:"Big Review",
+    emoji:"&#127942;",
+    tabClass:"t3",
+    color:"#22c55e",
+    blends:["bl","cr","st","mp","kn","wr","ck","gh","nd","ft"],
+    words:[
+      {w:"globe",b:"gl"},{w:"drum",b:"dr"},{w:"prize",b:"pr"},{w:"frog",b:"fr"},{w:"bridge",b:"br"},
+      {w:"stamp",b:"mp"},{w:"chest",b:"st"},{w:"shelf",b:"lf"},{w:"band",b:"nd"},{w:"lift",b:"ft"},
+      {w:"knight",b:"kn"},{w:"wreath",b:"wr"},{w:"clock",b:"ck"},{w:"night",b:"gh"},{w:"know",b:"kn"},
+      {w:"snack",b:"ck"},{w:"wrist",b:"wr"},{w:"eight",b:"gh"},{w:"tusk",b:"sk"},{w:"nest",b:"st"}
+    ],
+    quiz:[
+      {q:"Do you ___ how to make a sand castle?",type:"fill",ans:"know"},
+      {q:"You need a ___ to mail this letter.",type:"fill",ans:"stamp"},
+      {q:"The ___ holds a sword to fight with a dragon.",type:"fill",ans:"knight"},
+      {q:"My shoes are too ___. I can't put them on.",type:"fill",ans:"tight"},
+      {q:"There is a ___ over the river.",type:"fill",ans:"bridge"}
+    ]
+  }
+];
+
+let currentTopic = 0;
+let drawActive = false;
+let eraserMode = false;
+let penColor = '#333';
+let penSz = 2;
+let isDrawing = false;
+let matchState = {};
+
+// ============ INIT ============
+function init(){
+  renderTabs();
+  renderTopic(0);
+  initCanvas();
+  setInterval(()=>{
+    const n=new Date();
+    document.getElementById('clock').textContent=n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  },1000);
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT')return;
+    if(e.key==='d'||e.key==='D')togglePen();
+    if(e.key==='e'||e.key==='E')toggleEraser();
+    if(e.key==='r'||e.key==='R')resetQuiz();
+    if(e.key==='f'||e.key==='F')toggleFS();
+    if(e.key==='ArrowRight'&&currentTopic<TOPICS.length-1)switchTopic(currentTopic+1);
+    if(e.key==='ArrowLeft'&&currentTopic>0)switchTopic(currentTopic-1);
+  });
+}
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=TOPICS.map((t,i)=>
+    `<button class="tab-btn ${t.tabClass} ${i===0?'active':''}" onclick="switchTopic(${i})">${t.emoji} ${t.label}</button>`
+  ).join('');
+}
+function switchTopic(i){
+  currentTopic=i;
+  document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  renderTopic(i);
+}
+
+// ============ RENDER ============
+function renderTopic(idx){
+  const t=TOPICS[idx];
+  const area=document.getElementById('mainContent');
+  matchState={selA:null,selB:null,matched:{}};
+
+  // group words by blend
+  const groups={};
+  t.words.forEach(w=>{ if(!groups[w.b])groups[w.b]=[]; groups[w.b].push(w.w); });
+
+  // shuffle for matching (pick 8)
+  const matchWords=[...t.words].sort(()=>Math.random()-0.5).slice(0,8);
+  const shuffledDefs=[...matchWords].sort(()=>Math.random()-0.5);
+
+  // bubble colors
+  const bColors=['#f472b6','#a78bfa','#60a5fa','#34d399','#fbbf24','#fb923c','#f87171','#818cf8','#2dd4bf','#e879f9'];
+
+  area.innerHTML=`<div class="week-panel">
+
+    <!-- SECTION 1: INTERACTIVE VISUALIZATION -->
+    <div class="sec-title"><span class="emoji">&#127912;</span> Interactive Flashcards &mdash; Tap to Flip!</div>
+    <div class="fc-grid">
+      ${t.words.slice(0,16).map((w,i)=>`
+        <div class="fc" onclick="this.classList.toggle('flipped')">
+          <div class="front">
+            <div class="blend-highlight">${w.b}</div>
+            <div class="word">${w.w}</div>
+            <div class="tap-hint">tap me!</div>
+          </div>
+          <div class="back">
+            <div class="info">
+              <strong>${w.w}</strong><br/>
+              Blend: <span class="blend-tag">${w.b}</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- VIZ: BUBBLES + HOUSES -->
+    <div class="sec-title"><span class="emoji">&#127752;</span> Sound Families</div>
+    <div class="viz-grid">
+      <div class="card">
+        <h3>&#127880; Blend Bubbles &mdash; Click to Pop!</h3>
+        <div class="bubble-container">
+          ${Object.keys(groups).slice(0,10).map((b,i)=>`
+            <div class="bubble" style="background:${bColors[i%bColors.length]};width:${60+groups[b].length*6}px;height:${60+groups[b].length*6}px;" onclick="this.classList.toggle('popped')">
+              ${b}
+              <span class="bubble-word">${groups[b].slice(0,3).join(', ')}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>&#127968; Word Family Houses</h3>
+        <div class="house-row">
+          ${Object.entries(groups).slice(0,5).map(([b,ws],i)=>`
+            <div class="house" style="border-color:${bColors[i%bColors.length]}">
+              <div class="roof-label">${b}</div>
+              <div class="words">${ws.slice(0,4).join('<br/>')}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: FORMATIVE ASSESSMENT -->
+    <div class="sec-title"><span class="emoji">&#128221;</span> Exam Prep Quiz (${t.quiz.length} Questions)</div>
+    <div class="quiz-grid">
+      ${t.quiz.map((q,i)=>{
+        const qColor = bColors[i%bColors.length];
+        if(q.type==='fill'){
+          return `<div class="q-item">
+            <div class="q-num" style="background:${qColor}">${i+1}</div>
+            <div class="q-text">${q.q.replace('___',`<input class="q-input" id="qf_${idx}_${i}" data-ans="${q.ans}" placeholder="?" />`)}</div>
+          </div>`;
+        } else {
+          return `<div class="q-item">
+            <div class="q-num" style="background:${qColor}">${i+1}</div>
+            <div class="q-text">${q.q}</div>
+            <div class="q-options">
+              ${q.opts.map(o=>`<span class="q-opt" data-ans="${q.ans}" data-val="${o}" onclick="pickOpt(this)">${o}</span>`).join('')}
+            </div>
+          </div>`;
+        }
+      }).join('')}
+    </div>
+    <div style="text-align:center;margin-top:14px;">
+      <button class="btn btn-purple" onclick="checkAll(${idx})">&#10003; Check My Answers</button>
+    </div>
+    <div class="score-row">
+      <span>Score</span>
+      <span class="score-num" id="quizScore_${idx}">&mdash;</span>
+    </div>
+
+    <!-- MATCHING GAME -->
+    <div class="sec-title"><span class="emoji">&#129513;</span> Matching Game</div>
+    <div class="card">
+      <h3>Match each word to its blend!</h3>
+      <div class="match-zone">
+        <div class="match-col" id="mWords">
+          ${matchWords.map((w,i)=>`<div class="match-pill word-pill" data-idx="${i}" data-b="${w.b}" onclick="matchPick(this,'w',${i})">${w.w}</div>`).join('')}
+        </div>
+        <div class="match-col" id="mDefs">
+          ${shuffledDefs.map((w,i)=>{
+            const origIdx=matchWords.indexOf(w);
+            return `<div class="match-pill def-pill" data-idx="${origIdx}" data-b="${w.b}" onclick="matchPick(this,'d',${origIdx})">${w.b}</div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="score-row">
+        <span>Matched</span>
+        <span class="score-num" id="matchScore">0 / ${matchWords.length}</span>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+// ============ QUIZ LOGIC ============
+function pickOpt(el){
+  const siblings=el.parentElement.querySelectorAll('.q-opt');
+  siblings.forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function checkAll(idx){
+  let correct=0, total=TOPICS[idx].quiz.length;
+  // fill blanks
+  document.querySelectorAll(`[id^="qf_${idx}_"]`).forEach(inp=>{
+    const ans=inp.dataset.ans.toLowerCase();
+    const val=inp.value.trim().toLowerCase();
+    inp.classList.remove('correct','wrong');
+    if(val===ans){inp.classList.add('correct');correct++;}
+    else{inp.classList.add('wrong');}
+  });
+  // multi-choice
+  document.querySelectorAll('.q-opt.selected').forEach(el=>{
+    el.classList.remove('selected');
+    if(el.dataset.val===el.dataset.ans){el.classList.add('correct');correct++;}
+    else{el.classList.add('wrong');
+      el.parentElement.querySelectorAll('.q-opt').forEach(o=>{if(o.dataset.val===o.dataset.ans)o.classList.add('correct');});
+    }
+  });
+  document.getElementById(`quizScore_${idx}`).textContent=`${correct} / ${total}`;
+}
+
+// ============ MATCHING ============
+function matchPick(el,type,idx){
+  if(matchState.matched[idx]&&type==='w')return;
+  document.querySelectorAll(`.match-pill.${type==='w'?'word-pill':'def-pill'}.selected`).forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  if(type==='w')matchState.selA={idx,el};
+  else matchState.selB={idx,el};
+
+  if(matchState.selA&&matchState.selB){
+    if(matchState.selA.idx===matchState.selB.idx){
+      matchState.selA.el.classList.remove('selected');matchState.selA.el.classList.add('correct');
+      matchState.selB.el.classList.remove('selected');matchState.selB.el.classList.add('correct');
+      matchState.matched[matchState.selA.idx]=true;
+      document.getElementById('matchScore').textContent=`${Object.keys(matchState.matched).length} / 8`;
+    } else {
+      matchState.selA.el.classList.add('wrong');matchState.selB.el.classList.add('wrong');
+      const a=matchState.selA.el, b=matchState.selB.el;
+      setTimeout(()=>{a.classList.remove('selected','wrong');b.classList.remove('selected','wrong');},500);
+    }
+    matchState.selA=null;matchState.selB=null;
+  }
+}
+
+// ============ DRAWING ============
+function initCanvas(){
+  const c=document.getElementById('drawCanvas');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  const ctx=c.getContext('2d');
+  ctx.lineCap='round';ctx.lineJoin='round';
+  window.addEventListener('resize',()=>{
+    const img=ctx.getImageData(0,0,c.width,c.height);
+    c.width=window.innerWidth;c.height=window.innerHeight;
+    ctx.putImageData(img,0,0);ctx.lineCap='round';ctx.lineJoin='round';
+  });
+  c.addEventListener('mousedown',e=>{if(!drawActive)return;isDrawing=true;ctx.beginPath();ctx.moveTo(e.clientX,e.clientY);});
+  c.addEventListener('mousemove',e=>{
+    if(!isDrawing)return;
+    if(eraserMode){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=20;}
+    else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=penColor;ctx.lineWidth=penSz;}
+    ctx.lineTo(e.clientX,e.clientY);ctx.stroke();
+  });
+  c.addEventListener('mouseup',()=>isDrawing=false);
+  c.addEventListener('mouseleave',()=>isDrawing=false);
+  c.addEventListener('touchstart',e=>{if(!drawActive)return;e.preventDefault();isDrawing=true;const t=e.touches[0];ctx.beginPath();ctx.moveTo(t.clientX,t.clientY);},{passive:false});
+  c.addEventListener('touchmove',e=>{if(!isDrawing)return;e.preventDefault();const t=e.touches[0];
+    if(eraserMode){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=20;}
+    else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=penColor;ctx.lineWidth=penSz;}
+    ctx.lineTo(t.clientX,t.clientY);ctx.stroke();},{passive:false});
+  c.addEventListener('touchend',()=>isDrawing=false);
+}
+function togglePen(){
+  eraserMode=false;
+  document.getElementById('eraserBtn').classList.remove('active');
+  drawActive=!drawActive;
+  document.getElementById('drawCanvas').classList.toggle('active',drawActive);
+  document.getElementById('penBtn').classList.toggle('active',drawActive);
+  document.getElementById('colorPalette').classList.toggle('show',drawActive);
+}
+function toggleEraser(){
+  drawActive=true;
+  eraserMode=!eraserMode;
+  document.getElementById('drawCanvas').classList.add('active');
+  document.getElementById('penBtn').classList.remove('active');
+  document.getElementById('colorPalette').classList.remove('show');
+  document.getElementById('eraserBtn').classList.toggle('active',eraserMode);
+}
+function setColor(c){
+  penColor=c;eraserMode=false;
+  document.getElementById('eraserBtn').classList.remove('active');
+  document.querySelectorAll('.color-dot').forEach(d=>d.classList.toggle('active',d.style.background===c));
+}
+function setSize(s){
+  penSz=s;
+  document.querySelectorAll('.size-dot').forEach(d=>d.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+function clearDraw(){
+  const c=document.getElementById('drawCanvas');
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+function resetQuiz(){ renderTopic(currentTopic); clearDraw(); }
+function toggleFS(){
+  if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+init();
+</script>
+</body>
+</html>
